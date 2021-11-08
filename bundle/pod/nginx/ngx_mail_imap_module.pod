@@ -34,21 +34,22 @@ Supported methods are:
 
 
 
+=item C<plain>
+
+
+
+
+L<LOGIN|https://tools.ietf.org/html/rfc3501>,
+L<AUTH=PLAIN|https://tools.ietf.org/html/rfc4616>
+
+
+
 =item C<login>
 
 
 
 
 L<AUTH=LOGIN|https://tools.ietf.org/html/draft-murchison-sasl-login-00>
-
-
-
-=item C<plain>
-
-
-
-
-L<AUTH=PLAIN|https://tools.ietf.org/html/rfc4616>
 
 
 
@@ -75,6 +76,18 @@ L<AUTH=EXTERNAL|https://tools.ietf.org/html/rfc4422> (1.11.6).
 =back
 
 
+
+
+
+
+
+Plain text authentication methods
+(the C<LOGIN> command, C<AUTH=PLAIN>,
+and C<AUTH=LOGIN>) are always enabled,
+though if the C<plain> and C<login> methods
+are not specified,
+C<AUTH=PLAIN> and C<AUTH=LOGIN>
+will not be automatically included in L</imap_capabilities>.
 
 
 

@@ -371,6 +371,23 @@ right before the request is freed.
 
 
 
+B<NOTE>
+
+As the C<js_set> handler
+returns its result immediately, it supports
+only synchronous callbacks.
+Thus, asynchronous callbacks such as
+L<ngx.fetch()|reference>
+or
+L<setTimeout()|reference>
+are not supported.
+
+
+
+
+
+
+
 
 =head2 js_var
 

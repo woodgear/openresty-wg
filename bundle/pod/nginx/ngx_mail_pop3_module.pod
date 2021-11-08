@@ -41,8 +41,7 @@ Supported methods are:
 
 L<USERE<sol>PASS|https://tools.ietf.org/html/rfc1939>,
 L<AUTH PLAIN|https://tools.ietf.org/html/rfc4616>,
-L<AUTH LOGIN|https://tools.ietf.org/html/draft-murchison-sasl-login-00>.
-It is not possible to disable these methods.
+L<AUTH LOGIN|https://tools.ietf.org/html/draft-murchison-sasl-login-00>
 
 
 
@@ -79,6 +78,17 @@ L<AUTH EXTERNAL|https://tools.ietf.org/html/rfc4422> (1.11.6).
 =back
 
 
+
+
+
+
+
+Plain text authentication methods
+(C<USERE<sol>PASS>, C<AUTH PLAIN>,
+and C<AUTH LOGIN>) are always enabled,
+though if the C<plain> method is not specified,
+C<AUTH PLAIN> and C<AUTH LOGIN>
+will not be automatically included in L</pop3_capabilities>.
 
 
 
