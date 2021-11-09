@@ -103,6 +103,6 @@ function openresty_build() {
 
     make -j${RESTY_J} 
     make -j${RESTY_J} install
-
+    echo "ENV PATH=\$PATH:$OPENRESTY_BASE/luajit/bin:$OPENRESTY_BASE/nginx/sbin:$OPENRESTY_BASE/bin" 
     echo "wg action build: build openresty over"
 }
