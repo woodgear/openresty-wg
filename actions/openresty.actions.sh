@@ -9,27 +9,6 @@ function openresty-full-build() {
     VENDOR=$SOURCE_BASE/vendor
     OPENSSL_BASE=$VENDOR/openssl-1.1.1l
     OPENRESTY_SOURCE=$SOURCE_BASE/vendor
-    # add build dependency
-    # apk add --no-cache --virtual .build-deps \
-    #         build-base \
-    #         coreutils \
-    #         curl \
-    #         gd-dev \
-    #         geoip-dev \
-    #         libxslt-dev \
-    #         linux-headers \
-    #         make \
-    #         perl-dev \
-    #         readline-dev \
-    #         zlib-dev
-    # # add run dependency
-    #     && apk add --no-cache
-    #         gd \ ## 动态创建图片
-    #         geoip \
-    #         libgcc \
-    #         libxslt \
-    #         zlib
-    
     
     # build openssl
     RESTY_J=10
@@ -146,4 +125,15 @@ function openresty-build() {
     local END_OPENRESTY_INSTALL=$(($(date +%s%N)/1000000));
     echo "build-openresty: " $(echo "scale=3; $END_OPENRESTY_BUILD-$START_OPENRESTY_BUILD" | bc) "ms"
     echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
+}
+
+function openresty-my-test() {
+    OPENRESTY_BASE=$1
+    echo "base is " $OPENRESTY_BASE
+    if  [[ "$PATH" != "$OPENRESTY_BASE"* ]] ; then
+        echo "use nginx in $OPENRESTY_BASE"
+        export PATH="$OPENRESTY_BASE/nginx/sbin:$PATH"
+    fi
+    which nginx
+    prove -I ../vendor/test-nginx/lib -r ./t
 }
