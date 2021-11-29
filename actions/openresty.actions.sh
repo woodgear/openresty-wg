@@ -2,6 +2,14 @@
 
 function openresty-full-build() {
     # export OPENRESTY_SOURCE_BASE=/home/cong/sm/lab/openresty-1.19.3.2 first
+    if [ -z "$(git status --porcelain)" ]; then 
+        echo "workdir clean"
+    else 
+        echo "workdir not clean use '    git restore -s@ -SW  --  ./' if you want"
+        return
+    fi
+
+
     local START=$(($(date +%s%N)/1000000));
     SOURCE_BASE=$OPENRESTY_SOURCE_BASE
     OPENRESTY_BASE=$1
@@ -128,12 +136,14 @@ function openresty-build() {
 }
 
 function openresty-my-test() {
-    OPENRESTY_BASE=$1
+    echo $1
+    local OPENRESTY_BASE=$1
     echo "base is " $OPENRESTY_BASE
     if  [[ "$PATH" != "$OPENRESTY_BASE"* ]] ; then
         echo "use nginx in $OPENRESTY_BASE"
         export PATH="$OPENRESTY_BASE/nginx/sbin:$PATH"
     fi
+    echo $PATH
     which nginx
-    prove -I ../vendor/test-nginx/lib -r ./t
+    prove -I ./vendor/test-nginx/lib -r ./t
 }
