@@ -18,6 +18,25 @@ function _M.assert_contains(left, right)
     ngx.exit(ngx.ERR)
 end
 
+function _M.md5(text)
+    local resty_md5 = require "resty.md5"
+    local str = require "resty.string"
+
+    local md5 = resty_md5:new()
+    if not md5 then
+        ngx.say("failed to create md5 object")
+        return
+    end
+    local ok = md5:update(text)
+    if not ok then
+        ngx.say("failed to add data")
+        return
+    end
+
+    local digest = md5:final()
+    return str.to_hex(digest)
+end
+
 
 function _M.get_domain_a_cert(msg)  
     local cert= [[

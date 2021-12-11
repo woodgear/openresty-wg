@@ -1,11 +1,16 @@
 #!/bin/bash
 
+
+function openresty-force-clean() {
+    git restore -s@ -SW  --  ./ && git clean -d -x -f
+}
+
 function openresty-full-build() {
     # export OPENRESTY_SOURCE_BASE=/home/cong/sm/lab/openresty-1.19.3.2 first
     if [ -z "$(git status --porcelain)" ]; then 
         echo "workdir clean"
     else 
-        echo "workdir not clean use '    git restore -s@ -SW  --  ./' if you want"
+        echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
         return
     fi
 
@@ -13,11 +18,22 @@ function openresty-full-build() {
     local START=$(($(date +%s%N)/1000000));
     SOURCE_BASE=$OPENRESTY_SOURCE_BASE
     OPENRESTY_BASE=$1
+
+    if [ ! -n "$OPENRESTY_SOURCE_BASE" ] ; then
+        echo "OPENRESTY_SOURCE_BASE could not be empty"
+        exit 1
+    fi
+
+    if [ ! -n "$OPENRESTY_BASE" ] ; then
+        echo "OPENRESTY_BASE could not be empty"
+        exit 1
+    fi
     echo "wg action build: source base is $SOURCE_BASE target base is $OPENRESTY_BASE"
+
     VENDOR=$SOURCE_BASE/vendor
     OPENSSL_BASE=$VENDOR/openssl-1.1.1l
     OPENRESTY_SOURCE=$SOURCE_BASE/vendor
-    
+
     # build openssl
     RESTY_J=10
 
@@ -60,12 +76,14 @@ function openresty-full-build() {
     cd $SOURCE_BASE
     local START_OPENRESTY=$(($(date +%s%N)/1000000));
     echo "wg action build: build openresty start"
-
+    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I/pcre/include -I$OPENRESTY_BASE/openssl/include"
+    local cc_opt="$cc_opt  -O1 -fno-omit-frame-pointer"
     ./configure -j${RESTY_J} \
     --prefix=$OPENRESTY_BASE \
     --with-pcre \
-    --with-cc-opt="-DNGX_LUA_ABORT_AT_PANIC -I/pcre/include -I$OPENRESTY_BASE/openssl/include" \
+    --with-cc-opt="$cc_opt" \
     --with-ld-opt="-L$OPENRESTY_BASE/pcre/lib -L$OPENRESTY_BASE/openssl/lib -Wl,-rpath,$OPENRESTY_BASE/pcre/lib:$OPENRESTY_BASE/openssl/lib" \
+    --without-luajit-gc64 \
     --with-luajit-xcflags='-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' \
     --with-compat \
     --with-file-aio \
@@ -96,6 +114,7 @@ function openresty-full-build() {
     --with-stream \
     --with-stream_ssl_module \
     --with-threads
+    --with-debug
     
     local END_OPENRESTY_CONFIGURE=$(($(date +%s%N)/1000000));
 
@@ -118,6 +137,7 @@ function openresty-full-build() {
     echo "configure-openresty: " $(echo "scale=3; $END_OPENRESTY_CONFIGURE-$START_OPENRESTY" | bc) "ms"
     echo "build-openresty: " $(echo "scale=3; $END_OPENRESTY_BUILD-$START_OPENRESTY_BUILD" | bc) "ms"
     echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
+
 }
 
 function openresty-build() {
@@ -135,8 +155,7 @@ function openresty-build() {
     echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
 }
 
-function openresty-my-test() {
-    echo $1
+function _set_path() {
     local OPENRESTY_BASE=$1
     echo "base is " $OPENRESTY_BASE
     if  [[ "$PATH" != "$OPENRESTY_BASE"* ]] ; then
@@ -145,5 +164,44 @@ function openresty-my-test() {
     fi
     echo $PATH
     which nginx
+}
+
+function openresty-my-test-all() {
+    _set_path   ~/sm/temp/openresty-wg
     prove -I ./vendor/test-nginx/lib -r ./t
+}
+
+function openresty-my-test() {
+    _set_path  ~/sm/temp/openresty-wg
+    prove -I ./vendor/test-nginx/lib -r ./t/mine
+    echo $PWD
+    nginx -p $PWD/t/servroot -c $PWD/t/servroot/conf/nginx.conf
+    openresty-flamegraph
+
+    pkill nginx
+}
+
+function openresty-perf-flamegraph() {
+# prove -I ./vendor/test-nginx/lib -r ./t/mine.t; nginx -p $PWD/t/servroot -c $PWD/t/servroot/conf/nginx.conf; . ./actions/openresty.actions.sh; openresty-flamegraph
+    sudo  perf record -p `pgrep nginx` -F 99 -a -g &
+    local pid=$!
+    local n=10
+    echo "perf run in bg $pid wait $n s"
+    echo  $PWD
+    sleep $n
+    sudo kill -INT $pid
+    sleep 1
+    sudo chmod a+rw ./perf.data
+    perf script > perf.bt
+    /home/cong/sm/lab/FlameGraph/stackcollapse-perf.pl perf.bt > perf.cbt
+    /home/cong/sm/lab/FlameGraph/flamegraph.pl perf.cbt > perf.svg
+    firefox ./perf.svg
+}
+
+function openresty-profile-bcc-flamegraph() {
+    local n=10
+    echo "will run  bcc profile $pid wait $n s"
+    sudo PROBE_LIMIT=100000  ~/sm/lab/bcc/tools/profile.py  --stack-storage-size 204800  -af -p `pgrep nginx` 10 > profile.stacks
+    /home/cong/sm/lab/FlameGraph/flamegraph.pl < ./profile.stacks > ./profile.stacks.svg
+    firefox ./profile.stacks.svg &
 }

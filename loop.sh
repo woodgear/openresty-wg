@@ -1,7 +1,13 @@
-#!/bin/bash
+#!/usr/bin/zsh
 
-tmux send-keys -t 0 C-c ' source ./actions/openresty.actions.sh ; openresty-build ;   openresty-my-test ~/sm/temp/openresty ' C-m
+# tmux-send-key-to-pane run C-c ' source ./actions/openresty.actions.sh ; openresty-build ;   openresty-my-test ~/sm/temp/openresty ' C-m
 
-tmux send-keys -t 1 C-c ' tail -F ./t/servroot/logs/access.log' C-m
+# tmux-send-key-to-pane access C-c ' tail -F ./t/servroot/logs/access.log' C-m
 
-tmux send-keys -t 3 C-c ' tail -F ./t/servroot/logs/error.log' C-m
+# tmux-send-key-to-pane error 1 C-c ' tail -F ./t/servroot/logs/error.log' C-m
+
+
+
+# prove -I ./vendor/test-nginx/lib -r ./t/mine.t; nginx -p $PWD/t/servroot -c $PWD/t/servroot/conf/nginx.conf; . ./actions/openresty.actions.sh; openresty-flamegraph
+
+tmux-send-key-to-pane run C-c ' ' C-m
