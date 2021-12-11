@@ -1,0 +1,67 @@
+struct ngx_str_t {
+    size_t      len;
+    u_char     *data;
+};
+
+struct ngx_connection_s {
+    void               *data;
+    void *read;
+    void *write;
+
+    int fd;
+
+    void *recv;
+    void *send;
+    void *recv_chain;
+    void *send_chain;
+
+    void *listening;
+
+    long sent;
+
+    void *log;
+
+    void *pool;
+
+    int                 type;
+
+    void    *sockaddr;
+    unsigned int socklen;
+    struct ngx_str_t           addr_text;
+}
+
+
+BEGIN 
+{
+	time("%H:%M:%S");
+	printf(" start\n")
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/luajit/lib/libluajit-5.1.so.2.1.0:lua_pcall 
+{ 
+	time("%H:%M:%S");
+	printf(" lua pcall\n");
+}
+
+
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_init_connection
+{ 
+	time("%H:%M:%S");
+	$conn = (struct ngx_connection_s *) arg0;
+	
+	$len=$conn->addr_text.len;
+	printf(" conn aadr len %d -%s- \n", $conn->addr_text.len ,str($conn->addr_text.data,$conn->addr_text.len));
+}
+
+uretprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_init_connection
+{  
+	time("%H:%M:%S");
+ 	printf(" init connection ret\n");
+}
+
+END
+{
+	time("%H:%M:%S");
+	printf(" end\n")
+}
