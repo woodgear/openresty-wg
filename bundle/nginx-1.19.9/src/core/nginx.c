@@ -343,7 +343,7 @@ main(int argc, char *const *argv)
     }
 
 #if !(NGX_WIN32)
-
+    // signal wg: 初始化信号处理逻辑
     if (ngx_init_signals(cycle->log) != NGX_OK) {
         return 1;
     }

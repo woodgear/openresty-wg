@@ -35,7 +35,7 @@ ngx_socket_t     ngx_channel;
 ngx_int_t        ngx_last_process;
 ngx_process_t    ngx_processes[NGX_MAX_PROCESSES];
 
-
+// signal wg: 所有的信号处理callback
 ngx_signal_t  signals[] = {
     { ngx_signal_value(NGX_RECONFIGURE_SIGNAL),
       "SIG" ngx_value(NGX_RECONFIGURE_SIGNAL),
@@ -182,7 +182,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
 
     ngx_process_slot = s;
 
-
+    // wg: fork 出 work
     pid = fork();
 
     switch (pid) {
@@ -196,6 +196,7 @@ ngx_spawn_process(ngx_cycle_t *cycle, ngx_spawn_proc_pt proc, void *data,
     case 0:
         ngx_parent = ngx_pid;
         ngx_pid = ngx_getpid();
+        // wg: 实际上就是 ngx_worker_process_cycle
         proc(cycle, data);
         break;
 
@@ -314,7 +315,7 @@ ngx_init_signals(ngx_log_t *log)
     return NGX_OK;
 }
 
-
+// signal wg: ngx_signal_handler 在这里
 static void
 ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
 {
@@ -367,6 +368,7 @@ ngx_signal_handler(int signo, siginfo_t *siginfo, void *ucontext)
                 action = ", exiting";
 
             } else {
+                // signal wg: 这里读到了信号,设置了原子变量
                 ngx_reconfigure = 1;
                 action = ", reconfiguring";
             }

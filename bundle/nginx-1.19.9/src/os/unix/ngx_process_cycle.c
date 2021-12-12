@@ -141,7 +141,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
     delay = 0;
     sigio = 0;
     live = 1;
-
+    // wg: the inifinity loop
     for ( ;; ) {
         if (delay) {
             if (ngx_sigalrm) {
@@ -213,7 +213,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
 
             continue;
         }
-
+        // reload signal wg: a 1. master 收到reconfigure
         if (ngx_reconfigure) {
             ngx_reconfigure = 0;
 
@@ -228,13 +228,14 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             }
 
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "reconfiguring");
-
+            // reload wg: b 2. 初始化新的cyclye
             cycle = ngx_init_cycle(cycle);
             if (cycle == NULL) {
                 cycle = (ngx_cycle_t *) ngx_cycle;
                 continue;
             }
 
+            // reload wg: c 3. 启动新的work_process
             ngx_cycle = cycle;
             ccf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx,
                                                    ngx_core_module);
@@ -247,6 +248,7 @@ ngx_master_process_cycle(ngx_cycle_t *cycle)
             ngx_msleep(100);
 
             live = 1;
+            // reload wg: d 4. 关闭旧的worker process 
             ngx_signal_worker_processes(cycle,
                                         ngx_signal_value(NGX_SHUTDOWN_SIGNAL));
         }
@@ -550,6 +552,7 @@ ngx_signal_worker_processes(ngx_cycle_t *cycle, int signo)
         }
 
         if (ch.command) {
+            // reload wg: e 5. write quit cmd th process channel
             if (ngx_write_channel(ngx_processes[i].channel[0],
                                   &ch, sizeof(ngx_channel_t), cycle->log)
                 == NGX_OK)
@@ -755,7 +758,7 @@ ngx_master_process_exit(ngx_cycle_t *cycle)
     exit(0);
 }
 
-
+// wg: worker process的入口
 static void
 ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data)
 {
@@ -769,23 +772,25 @@ ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data)
     ngx_setproctitle("worker process");
 
     for ( ;; ) {
-
+        // reload wg: i10. worker 知道自己在退出中
         if (ngx_exiting) {
+            // reload wg: j11. worker 发现自己没有任何的事件了
             if (ngx_event_no_timers_left() == NGX_OK) {
                 ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "exiting");
+                // reload wg: 12. 这个函数中调用了exit(0)
                 ngx_worker_process_exit(cycle);
             }
         }
 
         ngx_log_debug0(NGX_LOG_DEBUG_EVENT, cycle->log, 0, "worker cycle");
-
+        // wg: 这里就是真正开始出来所有事件的地方
         ngx_process_events_and_timers(cycle);
 
         if (ngx_terminate) {
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "exiting");
             ngx_worker_process_exit(cycle);
         }
-
+        // reload wg: g8. 发现了ngx_quit worker 认识到自己应该退了
         if (ngx_quit) {
             ngx_quit = 0;
             ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0,
@@ -793,6 +798,7 @@ ngx_worker_process_cycle(ngx_cycle_t *cycle, void *data)
             ngx_setproctitle("worker process is shutting down");
 
             if (!ngx_exiting) {
+                // reload wg: h9. worker 设置自己为退出中,关闭所有的连接,设置shutdown timer
                 ngx_exiting = 1;
                 ngx_set_shutdown_timer(cycle);
                 ngx_close_listening_sockets(cycle);
@@ -963,6 +969,7 @@ ngx_worker_process_init(ngx_cycle_t *cycle, ngx_int_t worker)
 
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->init_process) {
+            // wg: call module's init_process
             if (cycle->modules[i]->init_process(cycle) == NGX_ERROR) {
                 /* fatal */
                 exit(2);
@@ -1121,6 +1128,7 @@ ngx_channel_handler(ngx_event_t *ev)
         switch (ch.command) {
 
         case NGX_CMD_QUIT:
+            // reload wg: f 6. worker process receives quit command 设置ngx_quit
             ngx_quit = 1;
             break;
 

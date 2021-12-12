@@ -221,13 +221,13 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 
     ngx_strlow(cycle->hostname.data, (u_char *) hostname, cycle->hostname.len);
 
-
+    // wg: nginx的module是编译脚本直接生成的,根据配置来的,是静态的,这里把这些module拷贝到了这个cycle中
     if (ngx_cycle_modules(cycle) != NGX_OK) {
         ngx_destroy_pool(pool);
         return NULL;
     }
 
-
+    // wg: call core module's create_conf
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
@@ -291,7 +291,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
         ngx_log_stderr(0, "the configuration file %s syntax is ok",
                        cycle->conf_file.data);
     }
-
+    // wg: 调用所有core module 的init conf
     for (i = 0; cycle->modules[i]; i++) {
         if (cycle->modules[i]->type != NGX_CORE_MODULE) {
             continue;
@@ -1441,6 +1441,7 @@ ngx_set_shutdown_timer(ngx_cycle_t *cycle)
 }
 
 
+// reload wg: 到了规定的时间但还是没退出成功 手动把连接read 关掉
 static void
 ngx_shutdown_timer_handler(ngx_event_t *ev)
 {

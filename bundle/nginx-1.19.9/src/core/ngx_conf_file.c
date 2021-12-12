@@ -459,7 +459,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
                     conf = confp[cf->cycle->modules[i]->ctx_index];
                 }
             }
-
+            // wg: 这里实际上调用了每个moudle里的每个command的解析函数
             rv = cmd->set(cf, cmd, conf);
 
             if (rv == NGX_CONF_OK) {
