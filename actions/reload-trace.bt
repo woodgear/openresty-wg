@@ -1,0 +1,90 @@
+
+struct  ngx_channel_s {
+    unsigned long int  command;
+    int pid;
+    int slot;
+    int fd;
+};
+
+
+BEGIN 
+{
+	time("%H:%M:%S");
+	printf(" start\n");
+    @sig_map[1]="hup";
+    @sig_map[2]="int";
+    @sig_map[3]="quit";
+    @sig_map[9]="kill";
+
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_signal_handler
+{ 
+	time("%H:%M:%S");
+    @pid_map[pid]="master";
+    $sig = arg0;
+    $sig_str = @sig_map[$sig];
+    if ( $sig_str=="hup") {
+	    printf(" reload wg: step1 master收到信号 开始reload ngx_signal_handler %d %s %d %s\n",pid,@pid_map[pid],$sig,$sig_str);
+    }
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_signal_worker_processes
+{ 
+	time("%H:%M:%S");
+    @pid_map[pid]="master";
+    $sig = arg1;
+	printf(" reload wg: step2 master 关掉旧进程, %d %s ngx_signal_worker_processes %d %s \n",pid,@pid_map[pid], $sig,@sig_map[$sig]);
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_worker_process_cycle
+{ 
+	time("%H:%M:%S");
+    @pid_map[pid]="worker";
+	printf(" 启动了一个新的worker %d \n", pid);
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_write_channel
+{ 
+
+	$ch = (struct ngx_channel_s*) arg1;
+    $ch_cmd = $ch->command;
+    $ch_cmd_str = @sig_map[$ch_cmd];
+    $ch_socket = arg0;
+
+    if ($ch_cmd_str =="quit") {
+	    time("%H:%M:%S");
+        printf(" reload wg: step3  %d %s 写channel 通知worker退出 %d cmd %d %s \n",pid,@pid_map[pid],$ch_socket,$ch_cmd,$ch_cmd_str);
+    }
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_set_shutdown_timer
+{
+	time("%H:%M:%S");
+    printf(" reload wg: step4  %d %s worker收到了通知,知道自己要退出了 设置超时回调 更新状态为退出中 \n",pid,@pid_map[pid]);
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_event_no_timers_left
+{
+	time("%H:%M:%S");
+    printf(" reload wg: step5  %d %s worker退出中,没有剩余的事件了 退掉进程 \n",pid,@pid_map[pid]);
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_shutdown_timer_handler
+{
+	time("%H:%M:%S");
+    printf(" reload wg: stepX  %d %s  超时了 手动关闭  \n",pid,@pid_map[pid]);
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_worker_process_exit
+{
+	time("%H:%M:%S");
+    printf(" reload wg: step6  %d %s  worker 退出进程 exit 0  \n",pid,@pid_map[pid]);
+    delete(@pid_map[pid]);
+}
+
+END
+{
+	time("%H:%M:%S");
+	printf(" end\n")
+}
