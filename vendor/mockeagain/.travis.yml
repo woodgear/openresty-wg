@@ -1,0 +1,22 @@
+sudo: false
+
+os: linux
+
+language: c
+
+compiler:
+  - gcc
+
+addons:
+  apt:
+    packages: [ python ]
+
+matrix:
+  include:
+    - os: osx
+      compiler: clang
+    - os: linux
+      compiler: gcc
+
+script:
+  - MOCKEAGAIN_VERBOSE=1 make test

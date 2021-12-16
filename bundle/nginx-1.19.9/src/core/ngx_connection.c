@@ -650,7 +650,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                 ls[i].fd = s;
                 continue;
             }
-
+            // wg: 真正listening端口
             if (listen(s, ls[i].backlog) == -1) {
                 err = ngx_socket_errno;
 

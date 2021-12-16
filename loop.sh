@@ -11,6 +11,5 @@
 # prove -I ./vendor/test-nginx/lib -r ./t/mine.t; nginx -p $PWD/t/servroot -c $PWD/t/servroot/conf/nginx.conf; . ./actions/openresty.actions.sh; openresty-flamegraph
 
 # tmux-send-key-to-pane run C-c ' ' C-m
-
-
-sudo bpftrace  -v ./actions/trace.bt 
+# rm -rf  ~/sm/temp/openresty-wg &&   . ./actions/openresty.actions.sh; openresty-full-build ~/sm/temp/openresty-wg
+# sudo bpftrace  -v ./actions/trace.bt 

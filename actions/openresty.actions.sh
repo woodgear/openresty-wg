@@ -113,7 +113,8 @@ function openresty-full-build() {
     --with-sha1-asm \
     --with-stream \
     --with-stream_ssl_module \
-    --with-threads
+    --with-threads \
+    --with-poll_module \
     --with-debug
     
     local END_OPENRESTY_CONFIGURE=$(($(date +%s%N)/1000000));
@@ -204,4 +205,8 @@ function openresty-profile-bcc-flamegraph() {
     sudo PROBE_LIMIT=100000  ~/sm/lab/bcc/tools/profile.py  --stack-storage-size 204800  -af -p `pgrep nginx` 10 > profile.stacks
     /home/cong/sm/lab/FlameGraph/flamegraph.pl < ./profile.stacks > ./profile.stacks.svg
     firefox ./profile.stacks.svg &
+}
+
+function openresty-run-lua-restry-core-test() {
+
 }

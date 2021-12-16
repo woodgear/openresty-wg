@@ -230,6 +230,7 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
             ngx_accept_disabled--;
 
         } else {
+            // wg: 争夺一个锁 拿到锁的人会去真正accept
             if (ngx_trylock_accept_mutex(cycle) == NGX_ERROR) {
                 return;
             }
@@ -845,6 +846,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         c->log = &ls[i].log;
 
         c->listening = &ls[i];
+        // wg: 将listening上的connection设置为从连接池中分配好的一个connection
         ls[i].connection = c;
 
         rev = c->read;
@@ -914,6 +916,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
 
 #else
 
+        // wg: 将连接的read事件handle设置为 ngx_event_accept 即有人在尝试读取客户端的数据
         rev->handler = (c->type == SOCK_STREAM) ? ngx_event_accept
                                                 : ngx_event_recvmsg;
 
