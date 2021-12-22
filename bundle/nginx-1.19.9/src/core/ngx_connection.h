@@ -36,6 +36,7 @@ struct ngx_listening_s {
 
     /* handler of accepted connection */
     //wg: 连接建立后的回调函数
+    // http wg:  src/http/ngx_http.c#L1714
     ngx_connection_handler_pt   handler;
 
     void               *servers;  /* array of ngx_http_in_addr_t, for example */

@@ -329,7 +329,7 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 
     /* optimize the lists of ports, addresses and server names */
-
+    // wg: listening 1
     if (ngx_http_optimize_servers(cf, cmcf, cmcf->ports) != NGX_OK) {
         return NGX_CONF_ERROR;
     }
@@ -1412,6 +1412,7 @@ ngx_http_optimize_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
             }
         }
 
+        // wg: listening 2
         if (ngx_http_init_listening(cf, &port[p]) != NGX_OK) {
             return NGX_ERROR;
         }
@@ -1657,7 +1658,7 @@ ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port)
             i++;
             continue;
         }
-
+        // wg: listening 3
         ls = ngx_http_add_listening(cf, &addr[i]);
         if (ls == NULL) {
             return NGX_ERROR;
@@ -1702,14 +1703,14 @@ ngx_http_add_listening(ngx_conf_t *cf, ngx_http_conf_addr_t *addr)
     ngx_listening_t           *ls;
     ngx_http_core_loc_conf_t  *clcf;
     ngx_http_core_srv_conf_t  *cscf;
-
+    // wg: listening 4
     ls = ngx_create_listening(cf, addr->opt.sockaddr, addr->opt.socklen);
     if (ls == NULL) {
         return NULL;
     }
 
     ls->addr_ntop = 1;
-
+    // wg: listening 设置http请求的handler ngx_event_accept.c#L321
     ls->handler = ngx_http_init_connection;
 
     cscf = addr->default_server;

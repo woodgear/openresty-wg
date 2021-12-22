@@ -322,6 +322,7 @@ ngx_http_init_connection(ngx_connection_t *c)
     c->log_error = NGX_ERROR_INFO;
 
     rev = c->read;
+    // event wg: 设置event handle,accept的fd可以read了代表用户有数据了
     rev->handler = ngx_http_wait_request_handler;
     c->write->handler = ngx_http_empty_handler;
 
@@ -428,7 +429,7 @@ ngx_http_wait_request_handler(ngx_event_t *rev)
         b->last = b->start;
         b->end = b->last + size;
     }
-
+    // wg: ngx_recv 从client读取数据 即尝试读取header_size的数据 
     n = c->recv(c, b->last, size);
 
     if (n == NGX_AGAIN) {
@@ -492,7 +493,7 @@ ngx_http_wait_request_handler(ngx_event_t *rev)
     c->log->action = "reading client request line";
 
     ngx_reusable_connection(c, 0);
-
+    // wg: 创建request r.header_in = c.buffer
     c->data = ngx_http_create_request(c);
     if (c->data == NULL) {
         ngx_http_close_connection(c);
@@ -572,7 +573,7 @@ ngx_http_alloc_request(ngx_connection_t *c)
     r->loc_conf = hc->conf_ctx->loc_conf;
 
     r->read_event_handler = ngx_http_block_reading;
-
+    // wg: request_上的 header_in 指向 connection上的 buffer
     r->header_in = hc->busy ? hc->busy->buf : c->buffer;
 
     if (ngx_list_init(&r->headers_out.headers, r->pool, 20,
@@ -616,6 +617,7 @@ ngx_http_alloc_request(ngx_connection_t *c)
     r->count = 1;
 
     tp = ngx_timeofday();
+    // wg: 初始化request上的数据
     r->start_sec = tp->sec;
     r->start_msec = tp->msec;
 

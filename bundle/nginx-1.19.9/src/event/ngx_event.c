@@ -764,7 +764,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
     }
 
 #endif
-
+    // wg: 分配所有的连接
     cycle->connections =
         ngx_alloc(sizeof(ngx_connection_t) * cycle->connection_n, cycle->log);
     if (cycle->connections == NULL) {
@@ -835,7 +835,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
             continue;
         }
 #endif
-
+        // wg: 给每一个端口分配一个连接
         c = ngx_get_connection(ls[i].fd, cycle->log);
 
         if (c == NULL) {
@@ -916,7 +916,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
 
 #else
 
-        // wg: 将连接的read事件handle设置为 ngx_event_accept 即有人在尝试读取客户端的数据
+        // wg: 将连接的read事件handle设置为 ngx_event_accept 即说明可以accept了 对于udp来言就是可以recvmsg了
         rev->handler = (c->type == SOCK_STREAM) ? ngx_event_accept
                                                 : ngx_event_recvmsg;
 
@@ -951,7 +951,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         }
 
 #endif
-
+        // event wg:  将事件加入到epol中去,这个事件代表可以accept,handle是ngx_accept_evnet
         if (ngx_add_event(rev, NGX_READ_EVENT, 0) == NGX_ERROR) {
             return NGX_ERROR;
         }

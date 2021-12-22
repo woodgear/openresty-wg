@@ -384,6 +384,7 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
 
             found = 1;
 
+            // wg: 这里的cf的module_type 是core 所以实际上所有的core module的命令在这之后就被执行了 
             if (cf->cycle->modules[i]->type != NGX_CONF_MODULE
                 && cf->cycle->modules[i]->type != cf->module_type)
             {
@@ -459,7 +460,8 @@ ngx_conf_handler(ngx_conf_t *cf, ngx_int_t last)
                     conf = confp[cf->cycle->modules[i]->ctx_index];
                 }
             }
-            // wg: 这里实际上调用了每个moudle里的每个command的解析函数
+
+            // wg: 执行所有core/config module的指令
             rv = cmd->set(cf, cmd, conf);
 
             if (rv == NGX_CONF_OK) {

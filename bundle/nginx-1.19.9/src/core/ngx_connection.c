@@ -486,7 +486,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
 
                 continue;
             }
-
+            // wg: 创建出socket
             s = ngx_socket(ls[i].sockaddr->sa_family, ls[i].type, 0);
 
             if (s == (ngx_socket_t) -1) {
@@ -597,7 +597,8 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
 
             ngx_log_debug2(NGX_LOG_DEBUG_CORE, log, 0,
                            "bind() %V #%d ", &ls[i].addr_text, s);
-
+            // wg: call bind
+            // wg: src/core/ngx_connection.c#L42 
             if (bind(s, ls[i].sockaddr, ls[i].socklen) == -1) {
                 err = ngx_socket_errno;
 
@@ -650,7 +651,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                 ls[i].fd = s;
                 continue;
             }
-            // wg: 真正listening端口
+            // wg: 真正listening端口 这个s的read event就代表可以accept了
             if (listen(s, ls[i].backlog) == -1) {
                 err = ngx_socket_errno;
 
@@ -683,8 +684,8 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                 continue;
             }
 
+            // wg: 设置listening的fd  为socket返回的fd
             ls[i].listen = 1;
-
             ls[i].fd = s;
         }
 
@@ -1134,11 +1135,12 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
 
     rev = c->read;
     wev = c->write;
-
+    // wg: 清空了这个connection
     ngx_memzero(c, sizeof(ngx_connection_t));
 
     c->read = rev;
     c->write = wev;
+    // wg: 这里的connection的fd,就是socket的fd
     c->fd = s;
     c->log = log;
 
