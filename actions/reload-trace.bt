@@ -1,4 +1,4 @@
-
+// 记录reload的过程
 struct  ngx_channel_s {
     unsigned long int  command;
     int pid;

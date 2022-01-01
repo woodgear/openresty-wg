@@ -1,3 +1,5 @@
+// 追踪nginx的连接状态,这里的连接指的是client->nginx的http的tcp连接.
+
 struct ngx_str_t {
     size_t      len;
     u_char     *data;

@@ -174,10 +174,10 @@ function openresty-my-test-all() {
 
 function openresty-my-test() {
     _set_path  ~/sm/temp/openresty-wg
-    prove -I ./vendor/test-nginx/lib -r ./t/mine
+    prove -I ./vendor/test-nginx/lib -r ./t/mine.t
     echo $PWD
     nginx -p $PWD/t/servroot -c $PWD/t/servroot/conf/nginx.conf
-    openresty-flamegraph
+    openresty-perf-flamegraph
 
     pkill nginx
 }

@@ -1,0 +1,23 @@
+
+struct ngx_str_t {
+    size_t      len;
+    u_char     *data;
+};
+
+BEGIN 
+{
+	time("%H:%M:%S");
+	printf(" start\n")
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_wg_bind
+{ 
+	time("%H:%M:%S");
+	printf("ngx wg bind fd %d \n", arg0);
+}
+
+END
+{
+	time("%H:%M:%S");
+	printf(" end\n")
+}

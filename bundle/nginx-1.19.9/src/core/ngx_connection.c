@@ -596,9 +596,11 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
             }
 
             ngx_log_debug2(NGX_LOG_DEBUG_CORE, log, 0,
-                           "bind() %V #%d ", &ls[i].addr_text, s);
+                           "bind() x %V #%d ", &ls[i].addr_text, s);
             // wg: call bind
             // wg: src/core/ngx_connection.c#L42 
+            ngx_wg_bind(log,s);
+
             if (bind(s, ls[i].sockaddr, ls[i].socklen) == -1) {
                 err = ngx_socket_errno;
 
@@ -1544,4 +1546,16 @@ ngx_connection_error(ngx_connection_t *c, ngx_err_t err, char *text)
     ngx_log_error(level, c->log, err, text);
 
     return NGX_ERROR;
+}
+
+void
+ngx_wg_bind(ngx_log_t *log,int fd) {
+   // this function used to track nginx listen event.
+    int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
+    ngx_log_debug0(NGX_LOG_DEBUG_CORE, log, 0,"test bind x");
+}
+void
+ngx_wg_listen() {
+   // this function used to track nginx listen event.
+    int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
 }
