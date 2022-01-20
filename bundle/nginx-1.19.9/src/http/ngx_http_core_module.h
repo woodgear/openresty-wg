@@ -133,11 +133,13 @@ typedef ngx_int_t (*ngx_http_phase_handler_pt)(ngx_http_request_t *r,
 struct ngx_http_phase_handler_s {
     ngx_http_phase_handler_pt  checker;
     ngx_http_handler_pt        handler;
+    ngx_str_t                  handler_name;
     ngx_uint_t                 next;
 };
 
 
 typedef struct {
+    // wg: 真正的handle在这里
     ngx_http_phase_handler_t  *handlers;
     ngx_uint_t                 server_rewrite_index;
     ngx_uint_t                 location_rewrite_index;
@@ -148,10 +150,17 @@ typedef struct {
     ngx_array_t                handlers;
 } ngx_http_phase_t;
 
+typedef struct {
+    ngx_array_t names;
+} ngx_http_phase_name_t;
+
+typedef struct {
+    ngx_str_t name;
+} ngx_http_phase_name_data_t;
 
 typedef struct {
     ngx_array_t                servers;         /* ngx_http_core_srv_conf_t */
-
+    // 真正的handle存储在这里
     ngx_http_phase_engine_t    phase_engine;
 
     ngx_hash_t                 headers_in_hash;
@@ -171,8 +180,9 @@ typedef struct {
     ngx_hash_keys_arrays_t    *variables_keys;
 
     ngx_array_t               *ports;
-
-    ngx_http_phase_t           phases[NGX_HTTP_LOG_PHASE + 1];
+    //wg: 更类似一个临时变量 各module在post config中将自己的handle注册到这里 在ngx_http_init_phase_handlers中用这里存的handle 放到  phase_engine 中
+    ngx_http_phase_t           phases[NGX_HTTP_LOG_PHASE + 1]; 
+    ngx_http_phase_name_t      phase_names[NGX_HTTP_LOG_PHASE + 1]; 
 } ngx_http_core_main_conf_t;
 
 
@@ -467,6 +477,7 @@ struct ngx_http_location_tree_node_s {
 };
 
 
+void ngx_http_core_run_phases_check_eyes(ngx_str_t *name);
 void ngx_http_core_run_phases(ngx_http_request_t *r);
 ngx_int_t ngx_http_core_generic_phase(ngx_http_request_t *r,
     ngx_http_phase_handler_t *ph);

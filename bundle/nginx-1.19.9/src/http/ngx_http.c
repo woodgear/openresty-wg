@@ -11,6 +11,9 @@
 
 
 static char *ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
+
+static ngx_int_t ngx_http_init_phase_names(ngx_conf_t *cf,
+    ngx_http_core_main_conf_t *cmcf);
 static ngx_int_t ngx_http_init_phases(ngx_conf_t *cf,
     ngx_http_core_main_conf_t *cmcf);
 static ngx_int_t ngx_http_init_headers_in_hash(ngx_conf_t *cf,
@@ -291,6 +294,9 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     if (ngx_http_init_phases(cf, cmcf) != NGX_OK) {
         return NGX_CONF_ERROR;
     }
+    if (ngx_http_init_phase_names(cf, cmcf) != NGX_OK) {
+        return NGX_CONF_ERROR;
+    }
 
     if (ngx_http_init_headers_in_hash(cf, cmcf) != NGX_OK) {
         return NGX_CONF_ERROR;
@@ -343,6 +349,67 @@ failed:
     return rv;
 }
 
+static ngx_int_t
+ngx_http_init_phase_names(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
+{
+    if (ngx_array_init(&cmcf->phase_names[NGX_HTTP_POST_READ_PHASE].names,
+                       cf->pool, 1, sizeof(ngx_http_phase_name_data_t))
+        != NGX_OK)
+    {
+        return NGX_ERROR;
+    }
+
+    if (ngx_array_init(&cmcf->phase_names[NGX_HTTP_SERVER_REWRITE_PHASE].names,
+                       cf->pool, 1, sizeof(ngx_http_phase_name_data_t))
+        != NGX_OK)
+    {
+        return NGX_ERROR;
+    }
+
+    if (ngx_array_init(&cmcf->phase_names[NGX_HTTP_REWRITE_PHASE].names,
+                       cf->pool, 1, sizeof(ngx_http_phase_name_data_t))
+        != NGX_OK)
+    {
+        return NGX_ERROR;
+    }
+
+    if (ngx_array_init(&cmcf->phase_names[NGX_HTTP_PREACCESS_PHASE].names,
+                       cf->pool, 1, sizeof(ngx_http_phase_name_data_t))
+        != NGX_OK)
+    {
+        return NGX_ERROR;
+    }
+
+    if (ngx_array_init(&cmcf->phase_names[NGX_HTTP_ACCESS_PHASE].names,
+                       cf->pool, 2, sizeof(ngx_http_phase_name_data_t))
+        != NGX_OK)
+    {
+        return NGX_ERROR;
+    }
+
+    if (ngx_array_init(&cmcf->phase_names[NGX_HTTP_PRECONTENT_PHASE].names,
+                       cf->pool, 2, sizeof(ngx_http_phase_name_data_t))
+        != NGX_OK)
+    {
+        return NGX_ERROR;
+    }
+
+    if (ngx_array_init(&cmcf->phase_names[NGX_HTTP_CONTENT_PHASE].names,
+                       cf->pool, 4, sizeof(ngx_http_phase_name_data_t))
+        != NGX_OK)
+    {
+        return NGX_ERROR;
+    }
+
+    if (ngx_array_init(&cmcf->phase_names[NGX_HTTP_LOG_PHASE].names,
+                       cf->pool, 1, sizeof(ngx_http_phase_name_data_t))
+        != NGX_OK)
+    {
+        return NGX_ERROR;
+    }
+
+    return NGX_OK;
+}
 
 static ngx_int_t
 ngx_http_init_phases(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
@@ -451,10 +518,13 @@ ngx_http_init_headers_in_hash(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 static ngx_int_t
 ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 {
+    // http-phase wg: 初始化phase handle
     ngx_int_t                   j;
     ngx_uint_t                  i, n;
     ngx_uint_t                  find_config_index, use_rewrite, use_access;
-    ngx_http_handler_pt        *h;
+    ngx_http_handler_pt         *h;
+    ngx_http_phase_name_data_t  *hn;
+    ngx_uint_t                  hnn;
     ngx_http_phase_handler_t   *ph;
     ngx_http_phase_handler_pt   checker;
 
@@ -483,6 +553,8 @@ ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 
     for (i = 0; i < NGX_HTTP_LOG_PHASE; i++) {
         h = cmcf->phases[i].handlers.elts;
+        hn = cmcf->phase_names[i].names.elts;
+        hnn = cmcf->phase_names[i].names.nelts;
 
         switch (i) {
 
@@ -544,11 +616,18 @@ ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
         }
 
         n += cmcf->phases[i].handlers.nelts;
-
+        // wg: 倒序 从后往前
         for (j = cmcf->phases[i].handlers.nelts - 1; j >= 0; j--) {
             ph->checker = checker;
             ph->handler = h[j];
-            ph->next = n;
+            
+            if (hnn>j) {
+                ph->handler_name= hn[j].name;
+            }else {
+                ngx_str_t name = ngx_string("not-set-yet");
+                ph->handler_name = name;
+            }
+            ph->next = n; //wg: next指向下一阶段
             ph++;
         }
     }

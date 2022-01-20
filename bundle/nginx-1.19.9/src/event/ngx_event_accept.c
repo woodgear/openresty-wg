@@ -44,7 +44,7 @@ ngx_event_accept(ngx_event_t *ev)
     if (!(ngx_event_flags & NGX_USE_KQUEUE_EVENT)) {
         ev->available = ecf->multi_accept;
     }
-
+    // 这个lc代表的是listen时get到的connection
     lc = ev->data;
     ls = lc->listening;
     ev->ready = 0;
@@ -57,7 +57,7 @@ ngx_event_accept(ngx_event_t *ev)
 
 #if (NGX_HAVE_ACCEPT4)
         if (use_accept4) {
-            // wg: 调用非阻塞的accept方法
+            //net wg: 调用非阻塞的accept方法
             s = accept4(lc->fd, &sa.sockaddr, &socklen,
                         SOCK_NONBLOCK | SOCK_CLOEXEC);
 
@@ -138,7 +138,8 @@ ngx_event_accept(ngx_event_t *ev)
 
         ngx_accept_disabled = ngx_cycle->connection_n / 8
                               - ngx_cycle->free_connection_n;
-        //wg: 在成功accept之后会在调用一次get_connection
+        //connection wg: 在成功accept之后会在调用一次get_connection
+        // TODO add trace here
         c = ngx_get_connection(s, ev->log);
 
         if (c == NULL) {
@@ -266,7 +267,7 @@ ngx_event_accept(ngx_event_t *ev)
          *           - ngx_atomic_fetch_add()
          *             or protection by critical section or light mutex
          */
-
+        // TODO 这里的number代表什么?
         c->number = ngx_atomic_fetch_add(ngx_connection_counter, 1);
 
 #if (NGX_STAT_STUB)
@@ -309,7 +310,7 @@ ngx_event_accept(ngx_event_t *ev)
 #endif
 
         if (ngx_add_conn && (ngx_event_flags & NGX_USE_EPOLL_EVENT) == 0) {
-            // event wg: 这里的connection已经是accept的fd了 当socket可读的时候会调用 c->read.handler, 对于http来说就是 ngx_http_wait_request_handler   ngx_http_request.c#326
+            // event wg: 这里的connection已经是accept的fd了 当socket可读的时候会调用 c->read.handler,这个handle是在ls->handler(c)的调用中设置的,对http来说就是ngx_http_init_connection中设置的 就是 ngx_http_wait_request_handler   ngx_http_request.c#326
             if (ngx_add_conn(c) == NGX_ERROR) {
                 ngx_close_accepted_connection(c);
                 return;
@@ -319,6 +320,7 @@ ngx_event_accept(ngx_event_t *ev)
         log->data = NULL;
         log->handler = NULL;
         // wg: http wg:  src/http/ngx_http.c#L1714 ngx_http_request.c#l207 ngx_http_init_connection
+        // wg: ls上的handler是在ngx_http_add_listening中设置的
         ls->handler(c);
 
         if (ngx_event_flags & NGX_USE_KQUEUE_EVENT) {

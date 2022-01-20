@@ -1,6 +1,6 @@
 
 struct ngx_str_t {
-    size_t      len;
+    int len;
     u_char     *data;
 };
 
@@ -13,7 +13,11 @@ BEGIN
 uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_wg_bind
 { 
 	time("%H:%M:%S");
-	printf("ngx wg bind fd %d \n", arg0);
+
+	$fd = arg1;
+	$addr = (struct ngx_str_t*) arg2;
+	$msg = arg3;
+	printf(" ngx wg bind fd %d addr %s addr_len %d msg \n", $fd,str($addr->data,$addr->len),$addr->len);
 }
 
 END

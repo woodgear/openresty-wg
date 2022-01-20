@@ -251,6 +251,16 @@ ngx_http_headers_more_post_config(ngx_conf_t *cf)
 
     *h = ngx_http_headers_more_handler;
 
+    ngx_http_phase_name_data_t             *n;
+    n = ngx_array_push(&cmcf->phase_names[NGX_HTTP_REWRITE_PHASE].names);
+    if (n == NULL) {
+        return NGX_ERROR;
+    }
+
+    ngx_str_t handle_name = ngx_string("ngx_http_headers_more_handler");
+
+    n->name = handle_name;
+
     return NGX_OK;
 }
 

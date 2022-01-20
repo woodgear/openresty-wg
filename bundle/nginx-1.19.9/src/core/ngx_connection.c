@@ -599,7 +599,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                            "bind() x %V #%d ", &ls[i].addr_text, s);
             // wg: call bind
             // wg: src/core/ngx_connection.c#L42 
-            ngx_wg_bind(log,s);
+            ngx_wg_bind(log,s,&ls[i].addr_text,"wg: call bind");
 
             if (bind(s, ls[i].sockaddr, ls[i].socklen) == -1) {
                 err = ngx_socket_errno;
@@ -686,7 +686,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                 continue;
             }
 
-            // wg: 设置listening的fd  为socket返回的fd
+            //listen wg: 设置listening的fd  为socket返回的fd
             ls[i].listen = 1;
             ls[i].fd = s;
         }
@@ -1115,7 +1115,7 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
                       s, ngx_cycle->files_n);
         return NULL;
     }
-
+    // wg: gc reuseconnection
     ngx_drain_connections((ngx_cycle_t *) ngx_cycle);
 
     c = ngx_cycle->free_connections;
@@ -1127,7 +1127,7 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
 
         return NULL;
     }
-
+    // connection的data是next
     ngx_cycle->free_connections = c->data;
     ngx_cycle->free_connection_n--;
 
@@ -1156,7 +1156,7 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
 
     rev->index = NGX_INVALID_INDEX;
     wev->index = NGX_INVALID_INDEX;
-
+    // event wg: event 的data 是connection
     rev->data = c;
     wev->data = c;
 
@@ -1333,7 +1333,7 @@ ngx_drain_connections(ngx_cycle_t *cycle)
 
         ngx_log_debug0(NGX_LOG_DEBUG_CORE, c->log, 0,
                        "reusing connection");
-
+        // wg: 这实际上就是关掉这个connection
         c->close = 1;
         c->read->handler(c->read);
     }
@@ -1549,13 +1549,7 @@ ngx_connection_error(ngx_connection_t *c, ngx_err_t err, char *text)
 }
 
 void
-ngx_wg_bind(ngx_log_t *log,int fd) {
-   // this function used to track nginx listen event.
-    int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
-    ngx_log_debug0(NGX_LOG_DEBUG_CORE, log, 0,"test bind x");
-}
-void
-ngx_wg_listen() {
+ngx_wg_bind(ngx_log_t *log,int fd,ngx_str_t* addr,char * msg) {
    // this function used to track nginx listen event.
     int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
 }

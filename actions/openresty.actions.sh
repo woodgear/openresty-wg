@@ -7,29 +7,26 @@ function openresty-force-clean() {
 
 function openresty-full-build() {
     # export OPENRESTY_SOURCE_BASE=/home/cong/sm/lab/openresty-1.19.3.2 first
-    if [ -z "$(git status --porcelain)" ]; then 
-        echo "workdir clean"
-    else 
+    if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then 
         echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
-        return
     fi
 
 
     local START=$(($(date +%s%N)/1000000));
     SOURCE_BASE=$OPENRESTY_SOURCE_BASE
-    OPENRESTY_BASE=$1
+    OPENRESTY_BASE=${OPENRESTY_BASE:-$1}
 
-    if [ ! -n "$OPENRESTY_SOURCE_BASE" ] ; then
+    if [ -z "$OPENRESTY_SOURCE_BASE" ] ; then
         echo "OPENRESTY_SOURCE_BASE could not be empty"
-        exit 1
+        return 1
     fi
 
-    if [ ! -n "$OPENRESTY_BASE" ] ; then
+    if [ -z "$OPENRESTY_BASE" ] ; then
         echo "OPENRESTY_BASE could not be empty"
-        exit 1
+        return 1
     fi
     echo "wg action build: source base is $SOURCE_BASE target base is $OPENRESTY_BASE"
-
+    return 
     VENDOR=$SOURCE_BASE/vendor
     OPENSSL_BASE=$VENDOR/openssl-1.1.1l
     OPENRESTY_SOURCE=$SOURCE_BASE/vendor
@@ -154,6 +151,7 @@ function openresty-build() {
     local END_OPENRESTY_INSTALL=$(($(date +%s%N)/1000000));
     echo "build-openresty: " $(echo "scale=3; $END_OPENRESTY_BUILD-$START_OPENRESTY_BUILD" | bc) "ms"
     echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
+    md5sum `which nginx`
 }
 
 function _set_path() {

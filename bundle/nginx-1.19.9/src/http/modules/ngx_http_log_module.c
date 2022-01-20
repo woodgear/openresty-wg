@@ -1930,5 +1930,24 @@ ngx_http_log_init(ngx_conf_t *cf)
 
     *h = ngx_http_log_handler;
 
+    h = ngx_array_push(&cmcf->phases[NGX_HTTP_LOG_PHASE].handlers);
+    if (h == NULL) {
+        return NGX_ERROR;
+    }
+
+    *h = ngx_http_log_handler;
+
+    ngx_http_phase_name_data_t             *n;
+    n = ngx_array_push(&cmcf->phase_names[NGX_HTTP_LOG_PHASE].names);
+    if (n == NULL) {
+        return NGX_ERROR;
+    }
+
+    ngx_str_t handle_name = ngx_string("ngx_http_log_handler");
+
+    n->name = handle_name;
+
+
+
     return NGX_OK;
 }

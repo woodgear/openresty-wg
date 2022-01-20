@@ -863,8 +863,15 @@ ngx_http_handler(ngx_http_request_t *r)
 
 
 void
+ngx_http_core_run_phases_check_eyes(ngx_str_t *name)
+{ 
+    int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
+}
+
+void
 ngx_http_core_run_phases(ngx_http_request_t *r)
 {
+    // wg: nginx http 的7个阶段的入口
     ngx_int_t                   rc;
     ngx_http_phase_handler_t   *ph;
     ngx_http_core_main_conf_t  *cmcf;
@@ -872,9 +879,10 @@ ngx_http_core_run_phases(ngx_http_request_t *r)
     cmcf = ngx_http_get_module_main_conf(r, ngx_http_core_module);
 
     ph = cmcf->phase_engine.handlers;
+    ph = cmcf->phase_engine.handlers;
 
     while (ph[r->phase_handler].checker) {
-
+        ngx_http_core_run_phases_check_eyes(&ph[r->phase_handler].handler_name);
         rc = ph[r->phase_handler].checker(r, &ph[r->phase_handler]);
 
         if (rc == NGX_OK) {

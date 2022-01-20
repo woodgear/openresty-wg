@@ -798,7 +798,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
 
     i = cycle->connection_n;
     next = NULL;
-
+    // wg: 初始化connection 链表
     do {
         i--;
 
@@ -835,7 +835,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
             continue;
         }
 #endif
-        // wg: 给每一个端口分配一个连接
+        // wg: 给每一个端口分配一个连接 这里的ls[i].fd 是在  ngx_init_cycle 的 ngx_open_listening_sockets 最终也就是 ngx_connection.c#L689 中设置的
         c = ngx_get_connection(ls[i].fd, cycle->log);
 
         if (c == NULL) {

@@ -226,6 +226,6 @@ void ngx_free_connection(ngx_connection_t *c);
 
 void ngx_reusable_connection(ngx_connection_t *c, ngx_uint_t reusable);
 
-void ngx_wg_listen();
-void ngx_wg_bind(ngx_log_t *,int);
+// void ngx_wg_listen();
+void ngx_wg_bind(ngx_log_t * log,int fd,ngx_str_t *addr ,char * msg);
 #endif /* _NGX_CONNECTION_H_INCLUDED_ */
