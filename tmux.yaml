@@ -9,6 +9,7 @@ windows:
            op:  
                 cmds:
                     - openresty-full-build
+                    - openresty-start-sample
            err-log:                
                 cmds:
                     - tail -F ./t/servroot/logs/error.log

@@ -26,7 +26,6 @@ function openresty-full-build() {
         return 1
     fi
     echo "wg action build: source base is $SOURCE_BASE target base is $OPENRESTY_BASE"
-    return 
     VENDOR=$SOURCE_BASE/vendor
     OPENSSL_BASE=$VENDOR/openssl-1.1.1l
     OPENRESTY_SOURCE=$SOURCE_BASE/vendor
@@ -128,6 +127,7 @@ function openresty-full-build() {
     echo "wg action build: build openresty over"
 
     local END=$(($(date +%s%N)/1000000));
+    _set_path
 
     echo "all-time: " $(echo "scale=3; $END - $START" | bc) "ms"
     echo "build-openssl: " $(echo "scale=3; $END_OPENSSL-$START_OPENSSL" | bc) "ms"
@@ -149,13 +149,20 @@ function openresty-build() {
     local START_OPENRESTY_INSTALL=$(($(date +%s%N)/1000000));
     make -j${RESTY_J} install
     local END_OPENRESTY_INSTALL=$(($(date +%s%N)/1000000));
+    _set_path
     echo "build-openresty: " $(echo "scale=3; $END_OPENRESTY_BUILD-$START_OPENRESTY_BUILD" | bc) "ms"
     echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
     md5sum `which nginx`
 }
 
+function openresty-start-sample() {
+    mkdir -p ./t/servroot/logs
+    pkill nginx
+    nginx -p $PWD/t/servroot -c $PWD/t/nginx.sample.conf
+}
+
 function _set_path() {
-    local OPENRESTY_BASE=$1
+    local OPENRESTY_BASE=${OPENRESTY_BASE:-$1}
     echo "base is " $OPENRESTY_BASE
     if  [[ "$PATH" != "$OPENRESTY_BASE"* ]] ; then
         echo "use nginx in $OPENRESTY_BASE"
@@ -203,8 +210,4 @@ function openresty-profile-bcc-flamegraph() {
     sudo PROBE_LIMIT=100000  ~/sm/lab/bcc/tools/profile.py  --stack-storage-size 204800  -af -p `pgrep nginx` 10 > profile.stacks
     /home/cong/sm/lab/FlameGraph/flamegraph.pl < ./profile.stacks > ./profile.stacks.svg
     firefox ./profile.stacks.svg &
-}
-
-function openresty-run-lua-restry-core-test() {
-
 }
