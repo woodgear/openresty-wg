@@ -1,0 +1,20 @@
+root: ./
+name: openresty
+restart_if_exists: true
+on_start:
+        - echo "start"
+windows:
+    openresty:
+        panes:                        
+           op:  
+                cmds:
+                    - openresty-full-build
+           err-log:                
+                cmds:
+                    - tail -F ./t/servroot/logs/error.log
+           access-log:                
+                cmds:
+                    - tail -F ./t/servroot/logs/access.log
+           kee-curl:                
+                cmds:
+                    - ./actions/keep-curl.sh
