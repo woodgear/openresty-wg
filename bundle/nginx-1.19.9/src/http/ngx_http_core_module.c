@@ -863,7 +863,7 @@ ngx_http_handler(ngx_http_request_t *r)
 
 
 void
-ngx_http_core_run_phases_check_eyes(ngx_http_phase_handler_pt checker, ngx_http_handler_pt handler)
+ngx_http_core_run_phases_check_eyes(ngx_http_phase_handler_pt checker, ngx_http_handler_pt handler,rc ngx_int_t)
 { 
     int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
 }
@@ -881,8 +881,8 @@ ngx_http_core_run_phases(ngx_http_request_t *r)
     ph = cmcf->phase_engine.handlers;
 
     while (ph[r->phase_handler].checker) {
-        ngx_http_core_run_phases_check_eyes(ph[r->phase_handler].checker,ph[r->phase_handler].handler);
         rc = ph[r->phase_handler].checker(r, &ph[r->phase_handler]);
+        ngx_http_core_run_phases_check_eyes(ph[r->phase_handler].checker,ph[r->phase_handler].handler,rc);
 
         if (rc == NGX_OK) {
             return;

@@ -157,7 +157,9 @@ function openresty-build() {
 
 function openresty-start-sample() {
     mkdir -p ./t/servroot/logs
-    pkill nginx
+    if [ -f "./t/servroot/logs/nginx.pid" ]; then
+        kill -QUIT $(cat ./t/servroot/logs/nginx.pid)
+    fi
     sleep 2s;
     nginx -p $PWD/t/servroot -c $PWD/t/nginx.sample.conf
 }

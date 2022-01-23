@@ -452,6 +452,7 @@ static ngx_int_t
 ngx_http_init_phase_handlers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf)
 {
     // http-phase wg: 初始化phase handle
+    // wg: ngx_http_core_run_phases
     ngx_int_t                   j;
     ngx_uint_t                  i, n;
     ngx_uint_t                  find_config_index, use_rewrite, use_access;

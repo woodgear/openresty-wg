@@ -472,7 +472,7 @@ struct ngx_http_location_tree_node_s {
 };
 
 
-void __attribute__((noinline)) ngx_http_core_run_phases_check_eyes(ngx_http_phase_handler_pt checker,ngx_http_handler_pt handler);
+void __attribute__((noinline)) ngx_http_core_run_phases_check_eyes(ngx_http_phase_handler_pt checker,ngx_http_handler_pt handler,ngx_int_t rc);
 void ngx_http_core_run_phases(ngx_http_request_t *r);
 ngx_int_t ngx_http_core_generic_phase(ngx_http_request_t *r,
     ngx_http_phase_handler_t *ph);

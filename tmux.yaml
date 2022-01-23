@@ -19,3 +19,10 @@ windows:
            kee-curl:                
                 cmds:
                     - ./actions/keep-curl.sh
+           backend:                
+                cmds:
+                    -  nginx -c $PWD/t/nginx.backend.conf
+           eyes:                
+                cmds:
+                    -  echo "eyes"
+
