@@ -133,7 +133,6 @@ typedef ngx_int_t (*ngx_http_phase_handler_pt)(ngx_http_request_t *r,
 struct ngx_http_phase_handler_s {
     ngx_http_phase_handler_pt  checker;
     ngx_http_handler_pt        handler;
-    ngx_str_t                  handler_name;
     ngx_uint_t                 next;
 };
 
@@ -153,10 +152,6 @@ typedef struct {
 typedef struct {
     ngx_array_t names;
 } ngx_http_phase_name_t;
-
-typedef struct {
-    ngx_str_t name;
-} ngx_http_phase_name_data_t;
 
 typedef struct {
     ngx_array_t                servers;         /* ngx_http_core_srv_conf_t */
@@ -477,7 +472,7 @@ struct ngx_http_location_tree_node_s {
 };
 
 
-void ngx_http_core_run_phases_check_eyes(ngx_str_t *name);
+void __attribute__((noinline)) ngx_http_core_run_phases_check_eyes(ngx_http_phase_handler_pt checker,ngx_http_handler_pt handler);
 void ngx_http_core_run_phases(ngx_http_request_t *r);
 ngx_int_t ngx_http_core_generic_phase(ngx_http_request_t *r,
     ngx_http_phase_handler_t *ph);

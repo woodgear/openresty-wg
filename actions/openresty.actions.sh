@@ -158,6 +158,7 @@ function openresty-build() {
 function openresty-start-sample() {
     mkdir -p ./t/servroot/logs
     pkill nginx
+    sleep 2s;
     nginx -p $PWD/t/servroot -c $PWD/t/nginx.sample.conf
 }
 

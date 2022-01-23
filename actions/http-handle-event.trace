@@ -1,0 +1,35 @@
+// 记录所有的http的handle的记录
+// TODO 还有一种方法是直接trace nginx中的几个check,这样就不用打patch了
+// TODO  1. handle 的执行时长  2. 返回值 3. request id
+struct ngx_str_t {
+    int len;
+    u_char     *data;
+};
+
+BEGIN 
+{
+	time("%H:%M:%S");
+	printf(" start\n")
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_core_run_phases
+{
+
+	time("%H:%M:%S");
+	printf(" run  phases\n");
+}
+
+uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_core_run_phases_check_eyes
+{ 
+	time("%H:%M:%S");
+	$checker = (uint64) arg0;
+	$handle = (uint64) arg1;
+
+	printf("checker %s handle addr 0x%x%x name %s \n",usym($checker) ,$handle>>32, $handle,usym($handle));
+}
+
+END
+{
+	time("%H:%M:%S");
+	printf(" end\n")
+}
