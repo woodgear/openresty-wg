@@ -781,7 +781,7 @@ ngx_http_lua_content_by_lua(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     if (clcf == NULL) {
         return NGX_CONF_ERROR;
     }
-
+    // wg: 当设置了 location 设置了content_by_lua_block的时候,实际上就是走的这里
     clcf->handler = ngx_http_lua_content_handler;
 
     return NGX_CONF_OK;

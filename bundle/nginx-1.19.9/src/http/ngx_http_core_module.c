@@ -863,7 +863,13 @@ ngx_http_handler(ngx_http_request_t *r)
 
 
 void
-ngx_http_core_run_phases_check_eyes(ngx_http_phase_handler_pt checker, ngx_http_handler_pt handler,rc ngx_int_t)
+ngx_http_core_run_phases_check_eyes(ngx_http_phase_handler_pt checker, ngx_http_handler_pt handler, ngx_int_t handle_index,ngx_int_t rc )
+{ 
+    int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
+}
+
+void
+ngx_http_set_location_handle_eyes(ngx_http_handler_pt handler)
 { 
     int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
 }
@@ -882,7 +888,7 @@ ngx_http_core_run_phases(ngx_http_request_t *r)
 
     while (ph[r->phase_handler].checker) {
         rc = ph[r->phase_handler].checker(r, &ph[r->phase_handler]);
-        ngx_http_core_run_phases_check_eyes(ph[r->phase_handler].checker,ph[r->phase_handler].handler,rc);
+        ngx_http_core_run_phases_check_eyes(ph[r->phase_handler].checker,ph[r->phase_handler].handler, r->phase_handler,rc);
 
         if (rc == NGX_OK) {
             return;
@@ -985,7 +991,7 @@ ngx_http_core_find_config_phase(ngx_http_request_t *r,
                    "using configuration \"%s%V\"",
                    (clcf->noname ? "*" : (clcf->exact_match ? "=" : "")),
                    &clcf->name);
-
+    // wg: 这个函数中设置了 request上的content_handle
     ngx_http_update_location_config(r);
 
     ngx_log_debug2(NGX_LOG_DEBUG_HTTP, r->connection->log, 0,
@@ -1263,7 +1269,7 @@ ngx_http_core_content_phase(ngx_http_request_t *r,
     size_t     root;
     ngx_int_t  rc;
     ngx_str_t  path;
-
+    // wg: 如何find config 阶段设置了 content_handle 在core_content_phase中实际上不会管 phase_handle
     if (r->content_handler) {
         r->write_event_handler = ngx_http_request_empty_handler;
         ngx_http_finalize_request(r, r->content_handler(r));
@@ -1383,6 +1389,7 @@ ngx_http_update_location_config(ngx_http_request_t *r)
 
     if (clcf->handler) {
         r->content_handler = clcf->handler;
+        ngx_http_set_location_handle_eyes(r->content_handler);
     }
 }
 

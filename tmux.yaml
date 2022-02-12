@@ -9,7 +9,8 @@ windows:
            op:  
                 cmds:
                     - openresty-full-build
-                    - openresty-start-sample
+                    - tmux-send-key-to-pane "backend" C-c  ' nginx -c $PWD/t/nginx.sample.conf' C-m
+                    - tmux-send-key-to-pane "eyes" C-c  '  sudo bpftrace -v  ./actions/http-handle-event.trace' C-m
            err-log:                
                 cmds:
                     - tail -F ./t/servroot/logs/error.log
@@ -21,7 +22,9 @@ windows:
                     - ./actions/keep-curl.sh
            backend:                
                 cmds:
-                    -  nginx -c $PWD/t/nginx.backend.conf
+                    - _set_path
+                    - which nginx
+                    -  echo "run nginx here"
            eyes:                
                 cmds:
                     -  echo "eyes"
