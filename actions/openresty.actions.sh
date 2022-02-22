@@ -216,3 +216,15 @@ function openresty-profile-bcc-flamegraph {
     /home/cong/sm/lab/FlameGraph/flamegraph.pl < ./profile.stacks > ./profile.stacks.svg
     firefox ./profile.stacks.svg &
 }
+
+function openresty-gdb() {
+    echo "you must stop bpftrace for the process first"
+    local pid=$(ps -aux |grep nginx |grep 'openresty-wg' |awk '{print $2}')
+    local gdbinit=$(cat <<EOF
+    info functions eyes
+EOF
+);
+    echo "$gdbinit" > ./gdbinit
+    sudo ugdb -p $pid -x ./gdbinit
+    return 
+}

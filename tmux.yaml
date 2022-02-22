@@ -13,6 +13,8 @@ windows:
                     - tmux-send-key-to-pane "backend" C-c  ' nginx -t -c $PWD/t/nginx.sample.conf -p  $PWD/t -e $PWD/t/servroot/logs/error.lo' C-m
                     - tmux-send-key-to-pane "backend" C-c  ' nginx -c $PWD/t/nginx.sample.conf -p  $PWD/t -e $PWD/t/servroot/logs/error.lo' C-m
                     - tmux-send-key-to-pane "eyes" C-c  '  sudo bpftrace -v  ./actions/http-handle-event.trace' C-m
+                    - code ./
+
            err-log:                
                 cmds:
                     - zsh
