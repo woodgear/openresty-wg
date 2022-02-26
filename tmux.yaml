@@ -27,12 +27,16 @@ windows:
                 cmds:
                     - zsh
                     - ./actions/keep-curl.sh
-           backend:                
+           nginx:                
                 cmds:
                     - zsh
                     - _set_path
                     - which nginx
-                    -  echo "run nginx here"
+                    -  echo "run test-nginx here"
+           backend:                 
+                cmds:
+                    -  echo "run nc echo server here"
+
            eyes:                
                 cmds:
                     - zsh

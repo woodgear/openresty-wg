@@ -73,7 +73,7 @@ function openresty-full-build {
     cd $SOURCE_BASE
     local START_OPENRESTY=$(($(date +%s%N)/1000000));
     echo "wg action build: build openresty start"
-    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I/pcre/include -I$OPENRESTY_BASE/openssl/include"
+    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I/pcre/include -I$OPENRESTY_BASE/openssl/include -DDDEBUG"
     local cc_opt="$cc_opt  -O1 -fno-omit-frame-pointer"
     ./configure -j${RESTY_J} \
     --prefix=$OPENRESTY_BASE \
