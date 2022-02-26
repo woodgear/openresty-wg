@@ -25,14 +25,14 @@ BEGIN
 
 }
 
-uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_core_run_phases
+uprobe:./t/nginx:ngx_http_core_run_phases
 {
 
 	time("%H:%M:%S");
 	printf("pid: %d run  phases\n",pid);
 }
 
-uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_core_run_phases_check_eyes
+uprobe:./t/nginx:ngx_http_core_run_phases_check_eyes
 { 
 	time("%H:%M:%S");
 	$checker = (uint64) arg0;
@@ -40,25 +40,23 @@ uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_core_run_phases
 	$index = (int64) arg2;
 	$rc = (int64) arg3;
 	$rcs = @rc_map[$rc];
-
-	printf("pid: %d checker %s handle addr 0x%x%x name %s index %d rc %s \n",pid,usym($checker) ,$handle>>32, $handle,usym($handle),$index,$rcs);
+	// printf only take 7 arguments
+	printf("pid: %d checker %s handle addr 0x%x%x name %s index %d",pid,usym($checker) ,$handle>>32, $handle,usym($handle),$index);
+	printf(" rcs %s\n",$rcs);
 }
 
-uretprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_core_find_config_phase
+uretprobe:./t/nginx:ngx_http_core_find_config_phase
 { 
 	time("%H:%M:%S");
 	printf(" ngx_http_core_find_config_phase ret\n");
 }
 
-uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_set_location_handle_eyes
+uprobe:./t/nginx:ngx_http_set_location_handle_eyes
 { 
 	time("%H:%M:%S");
 	$handle = (uint64) arg0;
 	printf(" set location handle %s\n",usym($handle));
 }
-
-
-
 
 END
 {

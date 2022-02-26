@@ -1,12 +1,12 @@
 #!/bin/bash
 
 
-function openresty-force-clean() {
+function openresty-force-clean {
     git restore -s@ -SW  --  ./ && git clean -d -x -f
 }
 
-function openresty-full-build() {
-    # export OPENRESTY_SOURCE_BASE=/home/cong/sm/lab/openresty-1.19.3.2 first
+# apt-get install zlib1g-dev libpcre3-dev unzip  libssl-dev perl make build-essential curl libxml2-dev libxslt1-dev ca-certificates  gettext-base libgd-dev libgeoip-dev  libncurses5-dev libperl-dev libreadline-dev libxslt1-dev
+function openresty-full-build {
     if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then 
         echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
     fi
@@ -54,6 +54,7 @@ function openresty-full-build() {
     echo "wg action build: build openssl over"
     
     # build pcre
+    export PCRE=$OPENRESTY_BASE/pcre
     local START_PCRE=$(($(date +%s%N)/1000000));
     cd $VENDOR/pcre-8.44
     
@@ -78,7 +79,7 @@ function openresty-full-build() {
     --prefix=$OPENRESTY_BASE \
     --with-pcre \
     --with-cc-opt="$cc_opt" \
-    --with-ld-opt="-L$OPENRESTY_BASE/pcre/lib -L$OPENRESTY_BASE/openssl/lib -Wl,-rpath,$OPENRESTY_BASE/pcre/lib:$OPENRESTY_BASE/openssl/lib" \
+    --with-ld-opt="-L $OPENRESTY_BASE/pcre/lib -L $OPENRESTY_BASE/openssl/lib -Wl,-rpath,$OPENRESTY_BASE/pcre/lib:$OPENRESTY_BASE/openssl/lib" \
     --without-luajit-gc64 \
     --with-luajit-xcflags='-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' \
     --with-compat \
@@ -138,7 +139,7 @@ function openresty-full-build() {
 
 }
 
-function openresty-build() {
+function openresty-build {
     # you need full-build first
     local END_OPENRESTY_CONFIGURE=$(($(date +%s%N)/1000000));
 
@@ -155,7 +156,7 @@ function openresty-build() {
     md5sum `which nginx`
 }
 
-function openresty-start-sample() {
+function openresty-start-sample {
     mkdir -p ./t/servroot/logs
     if [ -f "./t/servroot/logs/nginx.pid" ]; then
         kill -QUIT $(cat ./t/servroot/logs/nginx.pid)
@@ -164,7 +165,7 @@ function openresty-start-sample() {
     nginx -p $PWD/t/servroot -c $PWD/t/nginx.sample.conf
 }
 
-function _set_path() {
+function _set_path {
     local OPENRESTY_BASE=${OPENRESTY_BASE:-$1}
     echo "base is " $OPENRESTY_BASE
     if  [[ "$PATH" != "$OPENRESTY_BASE"* ]] ; then
@@ -173,14 +174,15 @@ function _set_path() {
     fi
     echo $PATH
     which nginx
+    ln -s $OPENRESTY_BASE/nginx/sbin/nginx ./t/nginx
 }
 
-function openresty-my-test-all() {
+function openresty-my-test-all {
     _set_path   ~/sm/temp/openresty-wg
     prove -I ./vendor/test-nginx/lib -r ./t
 }
 
-function openresty-my-test() {
+function openresty-my-test {
     _set_path  ~/sm/temp/openresty-wg
     prove -I ./vendor/test-nginx/lib -r ./t/mine.t
     echo $PWD
@@ -190,7 +192,7 @@ function openresty-my-test() {
     pkill nginx
 }
 
-function openresty-perf-flamegraph() {
+function openresty-perf-flamegraph {
 # prove -I ./vendor/test-nginx/lib -r ./t/mine.t; nginx -p $PWD/t/servroot -c $PWD/t/servroot/conf/nginx.conf; . ./actions/openresty.actions.sh; openresty-flamegraph
     sudo  perf record -p `pgrep nginx` -F 99 -a -g &
     local pid=$!
@@ -207,7 +209,7 @@ function openresty-perf-flamegraph() {
     firefox ./perf.svg
 }
 
-function openresty-profile-bcc-flamegraph() {
+function openresty-profile-bcc-flamegraph {
     local n=10
     echo "will run  bcc profile $pid wait $n s"
     sudo PROBE_LIMIT=100000  ~/sm/lab/bcc/tools/profile.py  --stack-storage-size 204800  -af -p `pgrep nginx` 10 > profile.stacks

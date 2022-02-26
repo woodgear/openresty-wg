@@ -8,24 +8,31 @@ windows:
         panes:                        
            op:  
                 cmds:
+                    - zsh
                     - openresty-full-build
-                    - tmux-send-key-to-pane "backend" C-c  ' nginx -c $PWD/t/nginx.sample.conf' C-m
+                    - tmux-send-key-to-pane "backend" C-c  ' nginx -t -c $PWD/t/nginx.sample.conf -p  $PWD/t -e $PWD/t/servroot/logs/error.lo' C-m
+                    - tmux-send-key-to-pane "backend" C-c  ' nginx -c $PWD/t/nginx.sample.conf -p  $PWD/t -e $PWD/t/servroot/logs/error.lo' C-m
                     - tmux-send-key-to-pane "eyes" C-c  '  sudo bpftrace -v  ./actions/http-handle-event.trace' C-m
            err-log:                
                 cmds:
+                    - zsh
                     - tail -F ./t/servroot/logs/error.log
            access-log:                
                 cmds:
+                    - zsh
                     - tail -F ./t/servroot/logs/access.log
            kee-curl:                
                 cmds:
+                    - zsh
                     - ./actions/keep-curl.sh
            backend:                
                 cmds:
+                    - zsh
                     - _set_path
                     - which nginx
                     -  echo "run nginx here"
            eyes:                
                 cmds:
+                    - zsh
                     -  echo "eyes"
 

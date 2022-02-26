@@ -39,27 +39,13 @@ BEGIN
 	printf(" start\n")
 }
 
-uprobe:/home/cong/sm/temp/openresty-wg/luajit/lib/libluajit-5.1.so.2.1.0:lua_pcall 
-{ 
-	time("%H:%M:%S");
-	printf(" lua pcall\n");
-}
-
-
-
-uprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_init_connection
+uprobe:./t/nginx:ngx_http_init_connection
 { 
 	time("%H:%M:%S");
 	$conn = (struct ngx_connection_s *) arg0;
 	
 	$len=$conn->addr_text.len;
 	printf(" conn aadr len %d -%s- \n", $conn->addr_text.len ,str($conn->addr_text.data,$conn->addr_text.len));
-}
-
-uretprobe:/home/cong/sm/temp/openresty-wg/nginx/sbin/nginx:ngx_http_init_connection
-{  
-	time("%H:%M:%S");
- 	printf(" init connection ret\n");
 }
 
 END
