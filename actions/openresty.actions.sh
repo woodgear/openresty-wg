@@ -177,6 +177,15 @@ function _set_path {
     ln -s $OPENRESTY_BASE/nginx/sbin/nginx ./t/nginx
 }
 
+function openresty-isvalid-nginx-config {
+    # -c $PWD/t/nginx.sample.conf 
+    # -p  $PWD/t 
+    # -e $PWD/t/servroot/logs/error.log
+    local c=""
+    local p=""
+    local e=""
+    nginx -t -c $c -p $p -e $e
+}
 function openresty-my-test-all {
     _set_path   ~/sm/temp/openresty-wg
     prove -I ./vendor/test-nginx/lib -r ./t
