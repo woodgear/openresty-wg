@@ -44,7 +44,8 @@ ngx_event_accept(ngx_event_t *ev)
     if (!(ngx_event_flags & NGX_USE_KQUEUE_EVENT)) {
         ev->available = ecf->multi_accept;
     }
-    // 这个lc代表的是listen时get到的connection
+    // wg: 这个lc代表的是listen时get到的connection
+    // wg: bundle/nginx-1.19.9/src/core/ngx_connection.c:1160 ngx_get_connection 时设置进去的 
     lc = ev->data;
     ls = lc->listening;
     ev->ready = 0;

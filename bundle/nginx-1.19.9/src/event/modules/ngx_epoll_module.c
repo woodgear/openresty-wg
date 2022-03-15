@@ -780,7 +780,7 @@ ngx_epoll_notify(ngx_event_handler_pt handler)
 
 #endif
 
-
+// wg: 实际上就是 bundle/nginx-1.19.9/src/event/ngx_event.c:258
 static ngx_int_t
 ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 {
@@ -797,7 +797,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                    "epoll timer: %M", timer);
-    // wg: epoll wait 将活跃的event 放到 event_list中
+    // wg: epoll wait 将活跃的event 放到 event_list中,event_list 是全局的.
     events = epoll_wait(ep, event_list, (int) nevents, timer);
 
     err = (events == -1) ? ngx_errno : 0;
@@ -853,7 +853,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
                            "epoll: stale event %p", c);
             continue;
         }
-
+        // wg: epoll_event 中的events是个bitmask,可以用来区分read还是write , EPOLLIN 是0x1 EPOLLOUT 是0x10(4)
         revents = event_list[i].events;
 
         ngx_log_debug3(NGX_LOG_DEBUG_EVENT, cycle->log, 0,

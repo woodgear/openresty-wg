@@ -8,26 +8,38 @@ windows:
         panes:                        
            op:  
                 cmds:
+                    - zsh
                     - openresty-full-build
-                    - tmux-send-key-to-pane "backend" C-c  ' nginx -c $PWD/t/nginx.sample.conf' C-m
+                    - rm ./t/nginx.sample.conf || true
+                    - ln -s $PWD/t/nginx.sample.ngxsay.conf ./t/nginx.sample.conf
+                    - tmux-send-key-to-pane "nginx" C-c  ' openresty-set-path' C-m
+                    - tmux-send-key-to-pane "nginx" C-c  ' nginx -t -c $PWD/t/nginx.sample.lb.conf -p  $PWD/t -e $PWD/t/servroot/logs/error.log ' C-m
+                    - tmux-send-key-to-pane "nginx" C-c  ' nginx -c $PWD/t/nginx.sample.lb.conf -p  $PWD/t -e $PWD/t/servroot/logs/error.log ' C-m
                     - tmux-send-key-to-pane "eyes" C-c  '  sudo bpftrace -v  ./actions/http-handle-event.trace' C-m
-                    - code ./
 
            err-log:                
                 cmds:
+                    - zsh
                     - tail -F ./t/servroot/logs/error.log
            access-log:                
                 cmds:
+                    - zsh
                     - tail -F ./t/servroot/logs/access.log
            kee-curl:                
                 cmds:
+                    - zsh
                     - ./actions/keep-curl.sh
-           backend:                
+           nginx:                
                 cmds:
-                    - _set_path
-                    - which nginx
-                    -  echo "run nginx here"
+                    - zsh
+                    -  echo "run test-nginx here"
+           backend:                 
+                cmds:
+                    -  echo "run nc echo server here"
+                    -  ncat -lk -p 61080 -c "echo  'HTTP/1.1 200 OK\r\n'"
+
            eyes:                
                 cmds:
+                    - zsh
                     -  echo "eyes"
 
