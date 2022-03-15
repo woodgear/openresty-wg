@@ -254,7 +254,7 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
     }
 
     delta = ngx_current_msec;
-
+    //wg: 这实际上就是ngx_epoll_process_events
     (void) ngx_process_events(cycle, timer, flags);
 
     delta = ngx_current_msec - delta;
@@ -816,6 +816,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
     /* for each listening socket */
 
     ls = cycle->listening.elts;
+    //wg: 上面初始化好了链接之后,就被每个listenng的端口分配一个connection
     for (i = 0; i < cycle->listening.nelts; i++) {
 
 #if (NGX_HAVE_REUSEPORT)
@@ -836,6 +837,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         }
 #endif
         // wg: 给每一个端口分配一个连接 这里的ls[i].fd 是在  ngx_init_cycle 的 ngx_open_listening_sockets 最终也就是 ngx_connection.c#L689 中设置的
+        // 这里会更新connection的fd
         c = ngx_get_connection(ls[i].fd, cycle->log);
 
         if (c == NULL) {

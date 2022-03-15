@@ -64,7 +64,6 @@ static void ngx_http_ssl_handshake(ngx_event_t *rev);
 static void ngx_http_ssl_handshake_handler(ngx_connection_t *c);
 #endif
 
-
 static char *ngx_http_client_errors[] = {
 
     /* NGX_HTTP_PARSE_INVALID_METHOD */
@@ -202,10 +201,17 @@ ngx_http_header_t  ngx_http_headers_in[] = {
     { ngx_null_string, 0, NULL }
 };
 
+void
+ngx_http_eyes_test_args
+(int arg)
+{
+    int j;*(volatile int *)&j = 1; // 这行保证不会被优化掉
+}
 
 void
 ngx_http_init_connection(ngx_connection_t *c)
 {
+
     ngx_uint_t                 i;
     ngx_event_t               *rev;
     struct sockaddr_in        *sin;
@@ -219,6 +225,8 @@ ngx_http_init_connection(ngx_connection_t *c)
     ngx_http_in6_addr_t       *addr6;
 #endif
 
+    ngx_log_error(NGX_LOG_ERR, c->log, 0, "wg: init connection %p fd %d",c,c->fd);
+    ngx_http_eyes_test_args(22345);
     hc = ngx_pcalloc(c->pool, sizeof(ngx_http_connection_t));
     if (hc == NULL) {
         ngx_http_close_connection(c);

@@ -238,3 +238,48 @@ EOF
     sudo ugdb -p $pid -x ./gdbinit
     return 
 }
+
+function ngx-on-epoll-process-event {
+code=$(cat <<EOF
+BEGIN 
+{
+	time("%H:%M:%S");
+	printf(" start\n");
+}
+uprobe:./t/nginx:ngx_epoll_process_events
+{
+	printf(" epoll process flags %x\n",arg3);
+}
+END
+{
+	time("%H:%M:%S");
+	printf(" end\n");
+}
+EOF
+);echo "$code"; sudo  bpftrace -e "$code" 
+}
+
+
+function gdb-steal-nginx-global-variable-address {
+    local name=$1
+    local gdbinit=$(cat <<EOF
+    set confirm off
+    p &$name
+    quit
+EOF
+);
+    echo "$gdbinit" > ./gdbinit
+    sudo gdb -q -p $(pgrep nginx) -x ./gdbinit 2>&1 |grep ngx_stat_accepted0 | rg -o '0x.*\s'
+}
+
+function ngx-show-global-accept {
+    # https://github.com/iovisor/bpftrace/issues/75
+    local address=$(gdb-steal-nginx-global-variable-address ngx_stat_accepted0)
+    local code=$(cat <<EOF
+uretprobe:./t/nginx: ngx_event_accept {\$p=$address;printf(" ngx_event_accept ret %d\n",*\$p);}
+EOF
+);
+    echo $code
+    sudo bpftrace -e "$code"
+}
+

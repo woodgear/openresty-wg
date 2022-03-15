@@ -162,6 +162,10 @@ char *ngx_http_merge_types(ngx_conf_t *cf, ngx_array_t **keys,
 ngx_int_t ngx_http_set_default_types(ngx_conf_t *cf, ngx_array_t **types,
     ngx_str_t *default_type);
 
+
+void __attribute__((noinline)) ngx_http_eyes_test_args(int arg);
+
+
 #if (NGX_HTTP_DEGRADATION)
 ngx_uint_t  ngx_http_degraded(ngx_http_request_t *);
 #endif
