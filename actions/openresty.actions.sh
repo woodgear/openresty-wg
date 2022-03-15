@@ -269,7 +269,7 @@ function gdb-steal-nginx-global-variable-address {
 EOF
 );
     echo "$gdbinit" > ./gdbinit
-    sudo gdb -q -p $(pgrep nginx) -x ./gdbinit 2>&1 |grep ngx_stat_accepted0 | rg -o '0x.*\s'
+    sudo gdb -q -p $(pgrep nginx) -x ./gdbinit 2>&1 |grep $name | rg -o '0x.*\s'
 }
 
 function ngx-show-global-accept {
