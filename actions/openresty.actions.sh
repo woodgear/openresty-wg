@@ -128,7 +128,7 @@ function openresty-full-build {
     echo "wg action build: build openresty over"
 
     local END=$(($(date +%s%N)/1000000));
-    _set_path
+    openresty-set-path
 
     echo "all-time: " $(echo "scale=3; $END - $START" | bc) "ms"
     echo "build-openssl: " $(echo "scale=3; $END_OPENSSL-$START_OPENSSL" | bc) "ms"
@@ -150,7 +150,7 @@ function openresty-build {
     local START_OPENRESTY_INSTALL=$(($(date +%s%N)/1000000));
     make -j${RESTY_J} install
     local END_OPENRESTY_INSTALL=$(($(date +%s%N)/1000000));
-    _set_path
+    openresty-set-path
     echo "build-openresty: " $(echo "scale=3; $END_OPENRESTY_BUILD-$START_OPENRESTY_BUILD" | bc) "ms"
     echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
     md5sum `which nginx`
@@ -165,7 +165,7 @@ function openresty-start-sample {
     nginx -p $PWD/t/servroot -c $PWD/t/nginx.sample.conf
 }
 
-function _set_path {
+function openresty-set-path {
     local OPENRESTY_BASE=${OPENRESTY_BASE:-$1}
     echo "base is " $OPENRESTY_BASE
     if  [[ "$PATH" != "$OPENRESTY_BASE"* ]] ; then
@@ -174,6 +174,7 @@ function _set_path {
     fi
     echo $PATH
     which nginx
+	rm ./t/nginx
     ln -s $OPENRESTY_BASE/nginx/sbin/nginx ./t/nginx
 }
 
@@ -187,12 +188,12 @@ function openresty-isvalid-nginx-config {
     nginx -t -c $c -p $p -e $e
 }
 function openresty-my-test-all {
-    _set_path   ~/sm/temp/openresty-wg
+    openresty-set-path   ~/sm/temp/openresty-wg
     prove -I ./vendor/test-nginx/lib -r ./t
 }
 
 function openresty-my-test {
-    _set_path  ~/sm/temp/openresty-wg
+    openresty-set-path  ~/sm/temp/openresty-wg
     prove -I ./vendor/test-nginx/lib -r ./t/mine.t
     echo $PWD
     nginx -p $PWD/t/servroot -c $PWD/t/servroot/conf/nginx.conf
@@ -226,7 +227,7 @@ function openresty-profile-bcc-flamegraph {
     firefox ./profile.stacks.svg &
 }
 
-function openresty-gdb() {
+function openresty-gdb {
     echo "you must stop bpftrace for the process first"
     local pid=$(ps -aux |grep nginx |grep 'openresty-wg' |awk '{print $2}')
     local gdbinit=$(cat <<EOF

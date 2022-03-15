@@ -1,5 +1,5 @@
 #!/bin/bash
-function _set_path() {
+function openresty-set-path() {
     echo "base is " $OPENRESTY_BASE
     if  [[ "$PATH" != "$OPENRESTY_BASE"* ]] ; then
         echo "use nginx in $OPENRESTY_BASE"
@@ -9,7 +9,7 @@ function _set_path() {
     which nginx
 }
 
-_set_path
+openresty-set-path
 function md5() {
 	local p=$1
 	md5sum $p | awk '{ print $1 }'
