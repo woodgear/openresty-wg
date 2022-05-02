@@ -164,15 +164,6 @@ function openresty-build {
     md5sum `which nginx`
 }
 
-function openresty-start-sample {
-    mkdir -p ./t/servroot/logs
-    if [ -f "./t/servroot/logs/nginx.pid" ]; then
-        kill -QUIT $(cat ./t/servroot/logs/nginx.pid)
-    fi
-    sleep 2s;
-    nginx -p $PWD/t/servroot -c $PWD/t/nginx.sample.conf
-}
-
 function openresty-set-path {
     local OPENRESTY_BASE=${OPENRESTY_BASE:-$1}
     echo "base is " $OPENRESTY_BASE
@@ -291,3 +282,4 @@ EOF
     sudo bpftrace -e "$code"
 }
 
+# mkdir -p ./t/servroot/logs &&  nginx -c $PWD/t/flame/nginx.lua.conf -p  $PWD/t -e $PWD/t/servroot/logs/error.log
