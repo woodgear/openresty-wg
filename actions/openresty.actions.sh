@@ -6,11 +6,17 @@ function openresty-force-clean {
 }
 
 # apt-get install zlib1g-dev libpcre3-dev unzip  libssl-dev perl make build-essential curl libxml2-dev libxslt1-dev ca-certificates  gettext-base libgd-dev libgeoip-dev  libncurses5-dev libperl-dev libreadline-dev libxslt1-dev
+
+# apk add git bash build-base coreutils curl gd-dev geoip-dev libxslt-dev linux-headers make perl-dev readline-dev zlib-dev gd geoip libgcc libxslt zlib -y
+#    . ./actions/openresty.actions.sh 
+#    mkdir -p ../rt-build 
+#    OPENRESTY_SOURCE_BASE=$PWD OPENRESTY_BASE=$PWD/../rt-build openresty-full-build
+
 function openresty-full-build {
     if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then 
         echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
+		return
     fi
-
 
     local START=$(($(date +%s%N)/1000000));
     SOURCE_BASE=$OPENRESTY_SOURCE_BASE
@@ -25,6 +31,9 @@ function openresty-full-build {
         echo "OPENRESTY_BASE could not be empty"
         return 1
     fi
+	rm -rf "$OPENRESTY_BASE"
+	mkdir -p $OPENRESTY_BASE
+
     echo "wg action build: source base is $SOURCE_BASE target base is $OPENRESTY_BASE"
     VENDOR=$SOURCE_BASE/vendor
     OPENSSL_BASE=$VENDOR/openssl-1.1.1l
@@ -80,7 +89,6 @@ function openresty-full-build {
     --with-pcre \
     --with-cc-opt="$cc_opt" \
     --with-ld-opt="-L $OPENRESTY_BASE/pcre/lib -L $OPENRESTY_BASE/openssl/lib -Wl,-rpath,$OPENRESTY_BASE/pcre/lib:$OPENRESTY_BASE/openssl/lib" \
-    --without-luajit-gc64 \
     --with-luajit-xcflags='-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' \
     --with-compat \
     --with-file-aio \
@@ -204,7 +212,7 @@ function openresty-my-test {
 
 function openresty-perf-flamegraph {
 # prove -I ./vendor/test-nginx/lib -r ./t/mine.t; nginx -p $PWD/t/servroot -c $PWD/t/servroot/conf/nginx.conf; . ./actions/openresty.actions.sh; openresty-flamegraph
-    sudo  perf record -p `pgrep nginx` -F 99 -a -g &
+    sudo  perf record -p "$1" -F 99 -a -g &
     local pid=$!
     local n=10
     echo "perf run in bg $pid wait $n s"
