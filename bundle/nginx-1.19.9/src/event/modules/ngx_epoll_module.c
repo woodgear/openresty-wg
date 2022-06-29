@@ -839,7 +839,7 @@ ngx_epoll_process_events(ngx_cycle_t *cycle, ngx_msec_t timer, ngx_uint_t flags)
 
         instance = (uintptr_t) c & 1;
         c = (ngx_connection_t *) ((uintptr_t) c & (uintptr_t) ~1);
-        // event wg: 拿connection的read事件
+        // event wg: 拿connection的read事件, 上面的fd是listen的fd 在 ngx_get_connection中设置的
         rev = c->read;
 
         if (c->fd == -1 || rev->instance != instance) {
