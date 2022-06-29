@@ -38,24 +38,17 @@ function openresty-full-build {
 	mkdir -p $OPENRESTY_BUILD_TRARGRT_DIR
 
     echo "wg action build: source base is $SOURCE_BASE target base is $OPENRESTY_BUILD_TRARGRT_DIR"
-    VENDOR=$SOURCE_BASE/vendor
-
-    local START_OPENSSL=$(date +%s%3N)
     openresty-build-openssl
-    local END_OPENSSL=$(($(date +%s%N)/1000000))
-
-    local START_PCRE=$(($(date +%s%N)/1000000))
     openresty-build-pcre
-    local END_PCRE=$(($(date +%s%N)/1000000))
+    openresty-build-luajit
 
     local openssl=$OPENRESTY_BUILD_TRARGRT_DIR/openssl
     local pcre=$OPENRESTY_BUILD_TRARGRT_DIR/pcre
+    local luajit=$OPENRESTY_BUILD_TRARGRT_DIR/luajit
 
-    openresty-build-resty $openssl $pcre
+    openresty-build-resty $openssl $pcre $luajit
     # build openssl
     
-    local openssl=$OPENRESTY_BUILD_TRARGRT_DIR/openssl
-    local pcre=$OPENRESTY_BUILD_TRARGRT_DIR/pcre
 
     # local START_OPENRESTY_BUILD=$(($(date +%s%N)/1000000));
     # make -j${RESTY_J}
@@ -262,6 +255,19 @@ function openresty-build-pcre() (
     echo "wg action build: build pcre over"
 )
 
+function openresty-build-luajit() (
+    local start=$(date +%s%3N)
+    local source=$OPENRESTY_SOURCE_BASE
+    local luajit=$OPENRESTY_BUILD_TRARGRT_DIR/luajit
+    cd $source/bundle/LuaJIT-2.1-20210510
+    local xcflags_enable_with_debug="-DLUA_USE_APICHECK -DLUA_USE_ASSERT"
+    local xcflags_custom="-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT"
+    make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS="$xcflags_enable_with_debug $xcflags_custom" CC=cc PREFIX=$luajit
+    make install TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS="$xcflags_enable_with_debug $xcflags_custom" CC=cc PREFIX=$luajit
+    local end=$(date +%s%3N)
+    echo "build: luiajit: $(_format_time_diff $start $end)"
+)
+
 # gen-config
 #   - build-luajit
 #   - build-lua-module  
@@ -272,21 +278,25 @@ function openresty-build-resty {
     local START_GEN_CFG=$(date +%s%3N)
     local openssl=${1:=$OPENRESTY_BUILD_TRARGRT_DIR/openssl}
     local pcre=${2:=$OPENRESTY_BUILD_TRARGRT_DIR/pcre}
+    local luajit=${3:=$OPENRESTY_BUILD_TRARGRT_DIR/luajit}
     local source=$OPENRESTY_SOURCE_BASE
     echo $openssl
     echo $pcre
+    echo $luajit
 
     local j=$RESTY_J
     cd $source
     echo "wg action build: build openresty start"
     local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I/pcre/include -I$openssl/openssl/include -DDDEBUG"
     local cc_opt="$cc_opt  -O1 -fno-omit-frame-pointer"
+
+   # make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' CC=cc PREFIX=/home/cong/sm/temp/openresty-wg/luajit
     ./configure -j$j \
     --prefix=$OPENRESTY_BUILD_TRARGRT_DIR \
     --with-pcre \
     --with-cc-opt="$cc_opt" \
     --with-ld-opt="-L $pcre/lib -L $openssl/lib -Wl,-rpath,$pcre/lib:$openssl/lib" \
-    --with-luajit-xcflags='-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' \
+    --with-luajit="$luajit" \
     --with-compat \
     --with-file-aio \
     --with-http_addition_module \

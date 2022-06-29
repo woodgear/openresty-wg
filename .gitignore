@@ -5,3 +5,4 @@ log
 *.o
 *.a
 *.so
+*.log
