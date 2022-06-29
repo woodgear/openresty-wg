@@ -1,7 +1,7 @@
 vendor/openssl-1.1.1l/*
 vendor/pcre-8.44/*
-build/*
-Makefile
-bundle
-t/servroot
-log/app.log
+build
+log
+*.o
+*.a
+*.so
