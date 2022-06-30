@@ -46,9 +46,9 @@ function openresty-full-build {
     local pcre=$OPENRESTY_BUILD_TRARGRT_DIR/pcre
     local luajit=$OPENRESTY_BUILD_TRARGRT_DIR/luajit
 
-    openresty-build-resty $openssl $pcre $luajit
-    # build openssl
+    openresty-gen-make $openssl $pcre $luajit
     
+    openresty-build-lua-and-nginx
 
     # local START_OPENRESTY_BUILD=$(($(date +%s%N)/1000000));
     # make -j${RESTY_J}
@@ -64,43 +64,150 @@ function openresty-full-build {
     # local END=$(($(date +%s%N)/1000000));
     # openresty-set-path
 
-    echo "all-time: " $(echo "scale=3; $END - $START" | bc) "ms"
-    echo "build-openssl: " $(echo "scale=3; $END_OPENSSL-$START_OPENSSL" | bc) "ms"
-    echo "build-pcre: " $(echo "scale=3; $END_PCRE-$START_PCRE" | bc) "ms"
-    echo "build-openresty: " $(echo "scale=3; $END_OPENRESTY_BUILD-$START_OPENRESTY_BUILD" | bc) "ms"
-    echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
-
+    # echo "all-time: " $(echo "scale=3; $END - $START" | bc) "ms"
+    # echo "build-openssl: " $(echo "scale=3; $END_OPENSSL-$START_OPENSSL" | bc) "ms"
+    # echo "build-pcre: " $(echo "scale=3; $END_PCRE-$START_PCRE" | bc) "ms"
+    # echo "build-openresty: " $(echo "scale=3; $END_OPENRESTY_BUILD-$START_OPENRESTY_BUILD" | bc) "ms"
+    # echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
 }
 
-function openresty-build {
-    local openssl=$1
-    local pcre=$2
-    local END_OPENRESTY_CONFIGURE=$(($(date +%s%N)/1000000));
 
-    local START_OPENRESTY_BUILD=$(($(date +%s%N)/1000000));
+function openresty-build-openssl() ( 
+
+    local source=$OPENRESTY_SOURCE_BASE
+    local vendor=$source/vendor
+    local openssl_base=$vendor/openssl-1.1.1l
+    local j=$RESTY_J
+    echo "wg action build: build openssl start"
+
+    cd $openssl_base
+    ## patch openssl
+    cat  ../openssl-1.1.1f-sess_set_get_cb_yield.patch | patch -p1
+    ./config \
+    no-threads shared zlib -g \
+    enable-ssl3 enable-ssl3-method \
+    --prefix=$OPENRESTY_BUILD_TRARGRT_DIR/openssl \
+    --libdir=lib \
+    -Wl,-rpath,$OPENRESTY_BUILD_TRARGRT_DIR/openssl/lib
+    
+    make -j$j
+    make -j$j install_sw
+    echo "wg action build: build openssl over"
+ )
+
+
+function openresty-build-pcre() ( 
+    # build pcre
+    local pcre=$OPENRESTY_BUILD_TRARGRT_DIR/pcre
+    local source=$OPENRESTY_SOURCE_BASE
+    local vendor=$source/vendor
+    local j=$RESTY_J
+    local START_PCRE=$(($(date +%s%N)/1000000));
+    cd $vendor/pcre-8.44
+    
+    echo "wg action build: build pcre start"
+    ./configure \
+    --prefix=$pcre \
+    --disable-cpp \
+    --enable-jit \
+    --enable-utf \
+    --enable-unicode-properties
+    make -j$j
+    make -j$j install
+    echo "wg action build: build pcre over"
+)
+
+function openresty-build-luajit() (
+    local start=$(date +%s%3N)
+    local source=$OPENRESTY_SOURCE_BASE
+    local luajit=$OPENRESTY_BUILD_TRARGRT_DIR/luajit
+    cd $source/bundle/LuaJIT-2.1-20210510
+    local xcflags_enable_with_debug="-DLUA_USE_APICHECK -DLUA_USE_ASSERT"
+    local xcflags_custom="-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT"
+    make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS="$xcflags_enable_with_debug $xcflags_custom" CC=cc PREFIX=$luajit
+    make install TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS="$xcflags_enable_with_debug $xcflags_custom" CC=cc PREFIX=$luajit
+    local end=$(date +%s%3N)
+    echo "build: luiajit: $(_format_time_diff $start $end)"
+)
+
+# gen-config
+#   - build-luajit
+#   - build-lua-module  
+#   - build-resty-cli
+#   - build-resty-doc
+#   - gen-makefile
+function openresty-gen-make {
+    local START_GEN_CFG=$(date +%s%3N)
+    local openssl=${1:=$OPENRESTY_BUILD_TRARGRT_DIR/openssl}
+    local pcre=${2:=$OPENRESTY_BUILD_TRARGRT_DIR/pcre}
+    local luajit=${3:=$OPENRESTY_BUILD_TRARGRT_DIR/luajit}
+    local source=$OPENRESTY_SOURCE_BASE
+    echo $openssl
+    echo $pcre
+    echo $luajit
+
+    local j=$RESTY_J
+    cd $source
+    echo "wg action build: build openresty start"
+    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I/pcre/include -I$openssl/openssl/include -DDDEBUG"
+    local cc_opt="$cc_opt  -O1 -fno-omit-frame-pointer"
+
+   # make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' CC=cc PREFIX=/home/cong/sm/temp/openresty-wg/luajit
+    ./configure -j$j \
+    --prefix=$OPENRESTY_BUILD_TRARGRT_DIR \
+    --with-pcre \
+    --with-cc-opt="$cc_opt" \
+    --with-ld-opt="-L $pcre/lib -L $openssl/lib -Wl,-rpath,$pcre/lib:$openssl/lib" \
+    --with-luajit="$luajit" \
+    --with-compat \
+    --with-file-aio \
+    --with-http_addition_module \
+    --with-http_auth_request_module \
+    --with-http_dav_module \
+    --with-http_flv_module \
+    --with-http_geoip_module=dynamic \
+    --with-http_gunzip_module \
+    --with-http_gzip_static_module \
+    --with-http_image_filter_module=dynamic \
+    --with-http_mp4_module \
+    --with-http_random_index_module \
+    --with-http_realip_module \
+    --with-http_secure_link_module \
+    --with-http_slice_module \
+    --with-http_ssl_module \
+    --with-http_stub_status_module \
+    --with-http_sub_module \
+    --with-http_v2_module \
+    --with-http_xslt_module=dynamic \
+    --with-ipv6 \
+    --with-mail \
+    --with-mail_ssl_module \
+    --with-md5-asm \
+    --with-pcre-jit \
+    --with-sha1-asm \
+    --with-stream \
+    --with-stream_ssl_module \
+    --with-threads \
+    --with-poll_module \
+    --with-debug
+    local END_GEN_CFG=$(date +%s%3N)
+    echo "configure-openresty: $(_format_time_diff $START_GEN_CFG $END_GEN_CFG)"
+}
+
+
+
+function openresty-build-lua-and-nginx {
+    local start=$(date +%s%3N)
     make -j${RESTY_J}
-    local END_OPENRESTY_BUILD=$(($(date +%s%N)/1000000));
-
-    local START_OPENRESTY_INSTALL=$(($(date +%s%N)/1000000));
+    local end=$(date +%s%3N)
     make -j${RESTY_J} install
-    local END_OPENRESTY_INSTALL=$(($(date +%s%N)/1000000));
-    openresty-set-path
-    echo "build-openresty: " $(echo "scale=3; $END_OPENRESTY_BUILD-$START_OPENRESTY_BUILD" | bc) "ms"
-    echo "install-openresty: " $(echo "scale=3; $END_OPENRESTY_INSTALL-$START_OPENRESTY_INSTALL" | bc) "ms"
-    md5sum `which nginx`
+    local end1=$(date +%s%3N)
+    echo "build: make : $(_format_time_diff $start $end)"
+    echo "build: make-install : $(_format_time_diff $end $end1)"
 }
 
 function openresty-set-path {
-    local OPENRESTY_BUILD_TRARGRT_DIR=${OPENRESTY_BUILD_TRARGRT_DIR:-$1}
-    echo "base is " $OPENRESTY_BUILD_TRARGRT_DIR
-    if  [[ "$PATH" != "$OPENRESTY_BUILD_TRARGRT_DIR"* ]] ; then
-        echo "use nginx in $OPENRESTY_BUILD_TRARGRT_DIR"
-        export PATH="$OPENRESTY_BUILD_TRARGRT_DIR/nginx/sbin:$PATH"
-    fi
-    echo $PATH
-    which nginx
-	rm ./t/nginx
-    ln -s $OPENRESTY_BUILD_TRARGRT_DIR/nginx/sbin/nginx ./t/nginx
+    ln -s $OPENRESTY_BUILD_TRARGRT_DIR/nginx/sbin/nginx /usr/bin/wg-nginx
 }
 
 function openresty-isvalid-nginx-config {
@@ -209,128 +316,6 @@ EOF
 }
 
 # mkdir -p ./t/servroot/logs &&  nginx -c $PWD/t/flame/nginx.lua.conf -p  $PWD/t -e $PWD/t/servroot/logs/error.log
-
-function openresty-build-openssl() ( 
-
-    local source=$OPENRESTY_SOURCE_BASE
-    local vendor=$source/vendor
-    local openssl_base=$vendor/openssl-1.1.1l
-    local j=$RESTY_J
-    echo "wg action build: build openssl start"
-
-    cd $openssl_base
-    ## patch openssl
-    cat  ../openssl-1.1.1f-sess_set_get_cb_yield.patch | patch -p1
-    ./config \
-    no-threads shared zlib -g \
-    enable-ssl3 enable-ssl3-method \
-    --prefix=$OPENRESTY_BUILD_TRARGRT_DIR/openssl \
-    --libdir=lib \
-    -Wl,-rpath,$OPENRESTY_BUILD_TRARGRT_DIR/openssl/lib
-    
-    make -j$j
-    make -j$j install_sw
-    echo "wg action build: build openssl over"
- )
-
-
-function openresty-build-pcre() ( 
-    # build pcre
-    local pcre=$OPENRESTY_BUILD_TRARGRT_DIR/pcre
-    local source=$OPENRESTY_SOURCE_BASE
-    local vendor=$source/vendor
-    local j=$RESTY_J
-    local START_PCRE=$(($(date +%s%N)/1000000));
-    cd $vendor/pcre-8.44
-    
-    echo "wg action build: build pcre start"
-    ./configure \
-    --prefix=$pcre \
-    --disable-cpp \
-    --enable-jit \
-    --enable-utf \
-    --enable-unicode-properties
-    make -j$j
-    make -j$j install
-    echo "wg action build: build pcre over"
-)
-
-function openresty-build-luajit() (
-    local start=$(date +%s%3N)
-    local source=$OPENRESTY_SOURCE_BASE
-    local luajit=$OPENRESTY_BUILD_TRARGRT_DIR/luajit
-    cd $source/bundle/LuaJIT-2.1-20210510
-    local xcflags_enable_with_debug="-DLUA_USE_APICHECK -DLUA_USE_ASSERT"
-    local xcflags_custom="-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT"
-    make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS="$xcflags_enable_with_debug $xcflags_custom" CC=cc PREFIX=$luajit
-    make install TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS="$xcflags_enable_with_debug $xcflags_custom" CC=cc PREFIX=$luajit
-    local end=$(date +%s%3N)
-    echo "build: luiajit: $(_format_time_diff $start $end)"
-)
-
-# gen-config
-#   - build-luajit
-#   - build-lua-module  
-#   - build-resty-cli
-#   - build-resty-doc
-#   - gen-makefile
-function openresty-build-resty {
-    local START_GEN_CFG=$(date +%s%3N)
-    local openssl=${1:=$OPENRESTY_BUILD_TRARGRT_DIR/openssl}
-    local pcre=${2:=$OPENRESTY_BUILD_TRARGRT_DIR/pcre}
-    local luajit=${3:=$OPENRESTY_BUILD_TRARGRT_DIR/luajit}
-    local source=$OPENRESTY_SOURCE_BASE
-    echo $openssl
-    echo $pcre
-    echo $luajit
-
-    local j=$RESTY_J
-    cd $source
-    echo "wg action build: build openresty start"
-    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I/pcre/include -I$openssl/openssl/include -DDDEBUG"
-    local cc_opt="$cc_opt  -O1 -fno-omit-frame-pointer"
-
-   # make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' CC=cc PREFIX=/home/cong/sm/temp/openresty-wg/luajit
-    ./configure -j$j \
-    --prefix=$OPENRESTY_BUILD_TRARGRT_DIR \
-    --with-pcre \
-    --with-cc-opt="$cc_opt" \
-    --with-ld-opt="-L $pcre/lib -L $openssl/lib -Wl,-rpath,$pcre/lib:$openssl/lib" \
-    --with-luajit="$luajit" \
-    --with-compat \
-    --with-file-aio \
-    --with-http_addition_module \
-    --with-http_auth_request_module \
-    --with-http_dav_module \
-    --with-http_flv_module \
-    --with-http_geoip_module=dynamic \
-    --with-http_gunzip_module \
-    --with-http_gzip_static_module \
-    --with-http_image_filter_module=dynamic \
-    --with-http_mp4_module \
-    --with-http_random_index_module \
-    --with-http_realip_module \
-    --with-http_secure_link_module \
-    --with-http_slice_module \
-    --with-http_ssl_module \
-    --with-http_stub_status_module \
-    --with-http_sub_module \
-    --with-http_v2_module \
-    --with-http_xslt_module=dynamic \
-    --with-ipv6 \
-    --with-mail \
-    --with-mail_ssl_module \
-    --with-md5-asm \
-    --with-pcre-jit \
-    --with-sha1-asm \
-    --with-stream \
-    --with-stream_ssl_module \
-    --with-threads \
-    --with-poll_module \
-    --with-debug
-    local END_GEN_CFG=$(date +%s%3N)
-    echo "configure-openresty: $(_format_time_diff $START_GEN_CFG $END_GEN_CFG)"
-}
 
 function _format_time_diff() {
     local start=$1
