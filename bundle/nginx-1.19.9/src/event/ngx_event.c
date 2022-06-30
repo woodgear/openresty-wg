@@ -252,15 +252,16 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
         ngx_event_move_posted_next(cycle);
         timer = 0;
     }
-
+    // wg: patch 每次都去更新时间
+    ngx_time_update();
     delta = ngx_current_msec;
     //wg: 这实际上就是ngx_epoll_process_events
     (void) ngx_process_events(cycle, timer, flags);
 
     delta = ngx_current_msec - delta;
-
+    // wg: patch add more log.
     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
-                   "timer delta: %M", delta);
+                   "timer delta: %M %M",ngx_current_msec, delta);
 
     ngx_event_process_posted(cycle, &ngx_posted_accept_events);
 
