@@ -61,8 +61,15 @@ function openresty-full-build {
     openresty-build-lua-and-nginx
     local end=$(date +%s%3N)
     echo "build: all : $(_format_time_diff $start $end)" | tee -a $target/build.record
+    keep-gitkeep
     cat $target/build.record
 }
+
+function keep-gitkeep () {
+    touch $source/build/.gitkeep
+    touch $source/target/.gitkeep
+}
+
 
 function openresty-build-openssl() (
     local start=$(date +%s%3N)
