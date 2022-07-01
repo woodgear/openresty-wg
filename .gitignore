@@ -5,3 +5,6 @@ log
 *.a
 *.so
 *.log
+Makefile
+build/.gitkeep
+target/.gitkeep

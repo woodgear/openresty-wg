@@ -38,21 +38,13 @@ function openresty-full-build {
         echo "OPENRESTY_BUILD_TRARGRT_DIR could not be empty"
         exit 1
     fi
-    # clean target dir
-    # rm -rf "$target"
-    mkdir -p $target
-    mkdir -p $source/build
 
-    if [ -f $target/build.record ];then
-        rm $target/build.record
-    fi
-
+    echo "start build " > $target/build.record
     local openssl=$target/openssl
     local pcre=$target/pcre
     local luajit=$target/luajit
     echo "wg action build: source base is $source target base is $target"
     if [ ! -d "$openssl" ]; then
-        echo "$openssl not exit"
         openresty-build-openssl
     fi
     if [ ! -d "$pcre" ]; then
@@ -63,7 +55,9 @@ function openresty-full-build {
     fi
 
 
-    openresty-gen-make $openssl $pcre $luajit
+    if [ ! -f Makefile ]; then
+        openresty-gen-make $openssl $pcre $luajit
+    fi
     openresty-build-lua-and-nginx
     local end=$(date +%s%3N)
     echo "build: all : $(_format_time_diff $start $end)" | tee -a $target/build.record
@@ -96,8 +90,10 @@ function openresty-build-openssl() (
 
 function openresty-build-pcre() (
     # build pcre
+    local start=$(date +%s%3N)
     local pcre=$OPENRESTY_BUILD_TRARGRT_DIR/pcre
     local source=$OPENRESTY_SOURCE_BASE
+    local target=${OPENRESTY_BUILD_TRARGRT_DIR}
     local vendor=$source/vendor
     local j=$RESTY_J
 
@@ -114,13 +110,18 @@ function openresty-build-pcre() (
     make -j$j
     make -j$j install
     echo "wg action build: build pcre over"
+    local end=$(date +%s%3N)
+    echo "build: pcre : $(_format_time_diff $start $end)" | tee -a $target/build.record
 )
 
 function openresty-build-luajit() (
     local start=$(date +%s%3N)
     local source=$OPENRESTY_SOURCE_BASE
+    local target=$OPENRESTY_BUILD_TRARGRT_DIR
     local luajit=$OPENRESTY_BUILD_TRARGRT_DIR/luajit
-    cd $source/bundle/LuaJIT-2.1-20210510
+
+    cp -rp $source/bundle/LuaJIT-2.1-20210510 $source/build/
+    cd $source/build/LuaJIT-2.1-20210510
     local xcflags_enable_with_debug="-DLUA_USE_APICHECK -DLUA_USE_ASSERT"
     local xcflags_custom="-DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT"
     make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS="$xcflags_enable_with_debug $xcflags_custom" CC=cc PREFIX=$luajit
@@ -216,6 +217,7 @@ function openresty-isvalid-nginx-config {
     local e=""
     nginx -t -c $c -p $p -e $e
 }
+
 function openresty-my-test-all {
     openresty-set-path ~/sm/temp/openresty-wg
     prove -I ./vendor/test-nginx/lib -r ./t
