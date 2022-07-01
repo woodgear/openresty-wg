@@ -1,6 +1,5 @@
-vendor/openssl-1.1.1l/*
-vendor/pcre-8.44/*
-build
+build/
+target/
 log
 *.o
 *.a

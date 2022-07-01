@@ -1,4 +1,4 @@
-from build-harbor.alauda.cn/ops/alpine:3.16
+FROM alpine:3.16
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
 RUN apk add bash 
 RUN apk add --no-cache --virtual .build-deps \
@@ -26,4 +26,4 @@ RUN ls ./
 ENV OPENRESTY_SOURCE_BASE=/openresty-wg 
 ENV OPENRESTY_BUILD_TRARGRT_DIR=/openresty-wg/target
 
-RUN bash -c 'source ./actions/openresty.actions.sh ; openresty-full-build'
+RUN bash -e -c 'source ./actions/openresty.actions.sh ; openresty-build-in-docker'

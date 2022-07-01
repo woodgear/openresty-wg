@@ -260,7 +260,7 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
 
     delta = ngx_current_msec - delta;
     // wg: patch add more log.
-    ngx_log_debug1(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
+    ngx_log_debug2(NGX_LOG_DEBUG_EVENT, cycle->log, 0,
                    "timer delta: %M %M",ngx_current_msec, delta);
 
     ngx_event_process_posted(cycle, &ngx_posted_accept_events);

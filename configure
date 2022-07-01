@@ -637,8 +637,8 @@ _END_
     }
 
     # wg: 重建 build 目录 因为我希望所有的变动都能在git中被追踪 所以就不copy了
-    # shell "cp -rp bundle/ build";
-    shell "ln -s bundle build";
+    # shell "ln -s bundle build";
+    shell "cp -rp bundle/ build";
 
     cd 'build';
 
