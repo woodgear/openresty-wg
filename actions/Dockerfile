@@ -4,20 +4,22 @@ RUN apk add bash
 RUN apk add --no-cache --virtual .build-deps \
         build-base \
         coreutils \
+        curl \
         gd-dev \
+        geoip-dev \
+        libxslt-dev \
         linux-headers \
         make \
         perl-dev \
         readline-dev \
-        zlib-dev \
-        git 
+        zlib-dev 
 
-RUN apk add --no-cache \
-        curl \
+RUN  apk add --no-cache \
+        gd \
+        geoip \
         libgcc \
-        zlib \
-        ca-certificates \
-        jq
+        libxslt \
+        zlib 
 
 COPY ./ /openresty-wg
 WORKDIR /openresty-wg 

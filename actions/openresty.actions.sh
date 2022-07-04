@@ -6,6 +6,12 @@ function openresty-force-clean {
     git restore -s@ -SW -- ./ && git clean -d -x -f
 }
 
+function openresty-clean-build {
+    rm Makefile
+    rm -rf ./build/*
+    rm -rf ./target/*
+}
+
 # apt-get install zlib1g-dev libpcre3-dev unzip  libssl-dev perl make build-essential curl libxml2-dev libxslt1-dev ca-certificates  gettext-base libgd-dev libgeoip-dev  libncurses5-dev libperl-dev libreadline-dev libxslt1-dev
 # apk add git bash build-base coreutils curl gd-dev geoip-dev libxslt-dev linux-headers make perl-dev readline-dev zlib-dev gd geoip libgcc libxslt zlib -y
 
@@ -39,6 +45,10 @@ function openresty-full-build {
         echo "OPENRESTY_BUILD_TRARGRT_DIR could not be empty"
         exit 1
     fi
+    echo $source
+    echo $target
+    mkdir -p $target
+    mkdir -p $source/build
 
     echo "start build " > $target/build.record
     local openssl=$target/openssl
@@ -201,13 +211,13 @@ function openresty-gen-make {
     local j=$RESTY_J
     cd $source
     echo "wg action build: build openresty start"
-    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I/pcre/include -I$openssl/openssl/include -DDDEBUG"
+    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I$pcre/include -I$openssl/include -DDDEBUG"
     local cc_opt="$cc_opt  -O1 -fno-omit-frame-pointer"
 
     # make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' CC=cc PREFIX=/home/cong/sm/temp/openresty-wg/luajit
     ./configure -j$j \
         --prefix=$OPENRESTY_BUILD_TRARGRT_DIR \
-        --with-pcre $pcre \
+        --with-pcre \
         --with-cc-opt="$cc_opt" \
         --with-ld-opt="-L $pcre/lib -L $openssl/lib -Wl,-rpath,$pcre/lib:$openssl/lib" \
         --with-luajit="$luajit" \
