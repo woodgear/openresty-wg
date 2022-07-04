@@ -19,7 +19,8 @@ function openresty-build-in-docker {
     cd $source
     openresty-full-build
 }
-
+# export OPENRESTY_SOURCE_BASE=$PWD
+# export OPENRESTY_BUILD_TRARGRT_DIR=$PWD/target
 function openresty-full-build {
     # if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then
     #     echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
@@ -58,7 +59,11 @@ function openresty-full-build {
     if [ ! -f Makefile ]; then
         openresty-gen-make $openssl $pcre $luajit
     fi
+
     openresty-build-lua-and-nginx
+
+    openresty-build-extra-lua
+
     local end=$(date +%s%3N)
     echo "build: all : $(_format_time_diff $start $end)" | tee -a $target/build.record
     keep-gitkeep
@@ -70,6 +75,46 @@ function keep-gitkeep () {
     touch $source/target/.gitkeep
 }
 
+
+function openresty-build-extra-lua() { 
+
+    local start=$(date +%s%3N)
+    local source=${OPENRESTY_SOURCE_BASE}
+    local target=${OPENRESTY_BUILD_TRARGRT_DIR}
+
+    mkdir -p $target/site/lualib/resty 
+
+    # ./target/bin/opm install thibaultcha/lua-resty-mlcache
+    echo "install lua-resty-mlcache"
+    cp -r $source/vendor/lua-resty-mlcache/lib/resty/* $target/site/lualib/resty
+
+    # ./target/bin/opm install xiangnanscu/lua-resty-cookie
+    echo "install lua-resty-cookie"
+    cp -r $source/vendor/lua-resty-cookie/resty/*  $target/site/lualib/resty
+
+    # install lua-resty-balancer
+    # && curl -fSL https://github.com/openresty/lua-resty-balancer/archive/v${LUA_RESTY_BALANCER_VERSION}.tar.gz -o lua-resty-balancer-v${LUA_RESTY_BALANCER_VERSION}.tar.gz \
+    # && tar xzf lua-resty-balancer-v${LUA_RESTY_BALANCER_VERSION}.tar.gz && rm -rf lua-resty-balancer-v${LUA_RESTY_BALANCER_VERSION}.tar.gz \
+    # && cd lua-resty-balancer-${LUA_RESTY_BALANCER_VERSION} \
+    # && make && make install && cd - \
+    echo "install lua-resty-balancer"
+    cd $source/vendor/lua-resty-balancer
+    make
+    make install DESTDIR=$target LUA_LIB_DIR=/site/lualib
+    cd -
+
+    # install lua-var-nginx-module
+    # curl -fSL https://github.com/api7/lua-var-nginx-module/archive/v${LUA_VAR_NGINX_MODULE_VERSION}.tar.gz -o lua-var-nginx-module-v${LUA_VAR_NGINX_MODULE_VERSION}.tar.gz \
+    # && cd lua-var-nginx-module-${LUA_VAR_NGINX_MODULE_VERSION} \
+    # && cp -r lib/resty/* /usr/local/openresty/lualib/resty && cd -"
+    echo "install lua-var-nginx-module"
+    cd $source/vendor/lua-var-nginx-module
+    cp -r lib/resty/*  $target/site/lualib/resty
+    cd -
+
+    local end=$(date +%s%3N)
+    echo "build: extra : $(_format_time_diff $start $end)" | tee -a $target/build.record
+}
 
 function openresty-build-openssl() (
     local start=$(date +%s%3N)
@@ -162,7 +207,7 @@ function openresty-gen-make {
     # make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' CC=cc PREFIX=/home/cong/sm/temp/openresty-wg/luajit
     ./configure -j$j \
         --prefix=$OPENRESTY_BUILD_TRARGRT_DIR \
-        --with-pcre \
+        --with-pcre $pcre \
         --with-cc-opt="$cc_opt" \
         --with-ld-opt="-L $pcre/lib -L $openssl/lib -Wl,-rpath,$pcre/lib:$openssl/lib" \
         --with-luajit="$luajit" \
@@ -332,4 +377,8 @@ function _format_time_diff() {
     local start=$1
     local end=$2
     echo $(echo "scale=3; ($end-$start)/1000" | bc)s
+}
+
+function openresty-zip() {
+    zip -r openresty-wg.zip  ./openresty-wg -x ./openresty-wg/target/\* ./openresty-wg/build/\*
 }

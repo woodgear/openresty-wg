@@ -1,3 +1,15 @@
 [submodule "vendor/openresty-devel-utils"]
 	path = vendor/openresty-devel-utils
 	url = https://github.com/openresty/openresty-devel-utils
+[submodule "vendor/lua-var-nginx-module"]
+	path = vendor/lua-var-nginx-module
+	url = https://github.com/api7/lua-var-nginx-module.git
+[submodule "vendor/lua-resty-mlcache"]
+	path = vendor/lua-resty-mlcache
+	url = https://github.com/thibaultcha/lua-resty-mlcache.git
+[submodule "vendor/lua-resty-cookie"]
+	path = vendor/lua-resty-cookie
+	url = https://github.com/xiangnanscu/lua-resty-cookie.git
+[submodule "vendor/lua-resty-balancer"]
+	path = vendor/lua-resty-balancer
+	url = https://github.com/openresty/lua-resty-balancer.git
