@@ -12,14 +12,15 @@ RUN apk add --no-cache --virtual .build-deps \
         make \
         perl-dev \
         readline-dev \
-        zlib-dev 
-
-RUN  apk add --no-cache \
+        zlib-dev \
         gd \
         geoip \
         libgcc \
         libxslt \
         zlib 
+
+RUN  apk add --no-cache \
+    tree
 
 COPY ./ /openresty-wg
 WORKDIR /openresty-wg 

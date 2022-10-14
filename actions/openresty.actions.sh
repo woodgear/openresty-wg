@@ -7,16 +7,19 @@ function openresty-force-clean {
 }
 
 function openresty-clean-build {
-    rm Makefile
+    rm -rf Makefile
     rm -rf ./build/*
     rm -rf ./target/*
 }
 
+function openresty-sync-submodules {
+    git submodule update --recursive --remote
+}
 # apt-get install zlib1g-dev libpcre3-dev unzip  libssl-dev perl make build-essential curl libxml2-dev libxslt1-dev ca-certificates  gettext-base libgd-dev libgeoip-dev  libncurses5-dev libperl-dev libreadline-dev libxslt1-dev
 # apk add git bash build-base coreutils curl gd-dev geoip-dev libxslt-dev linux-headers make perl-dev readline-dev zlib-dev gd geoip libgcc libxslt zlib -y
 
 function openresty-docker {
-    docker build -f ./actions/Dockerfile .
+    docker build -t openresty-wg:$(date +"%Y-%m-%d-%H-%M-%S")  -f ./actions/Dockerfile .
 }
 
 function openresty-build-in-docker {
@@ -78,6 +81,10 @@ function openresty-full-build {
     echo "build: all : $(_format_time_diff $start $end)" | tee -a $target/build.record
     keep-gitkeep
     cat $target/build.record
+    tree $target
+    ln -s  $target/nginx/sbin/nginx /usr/local/bin/nginx
+    which nginx
+    nginx -V
 }
 
 function keep-gitkeep () {
@@ -211,7 +218,9 @@ function openresty-gen-make {
     local j=$RESTY_J
     cd $source
     echo "wg action build: build openresty start"
-    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I$pcre/include -I$openssl/include -DDDEBUG"
+    # ignore those dd(xx) log
+    # local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I$pcre/include -I$openssl/include -DDDEBUG"
+    local cc_opt="-DNGX_LUA_ABORT_AT_PANIC -I$pcre/include -I$openssl/include"
     local cc_opt="$cc_opt  -O1 -fno-omit-frame-pointer"
 
     # make -j10 TARGET_STRIP=@: CCDEBUG=-g Q= XCFLAGS='-DLUA_USE_APICHECK -DLUA_USE_ASSERT -DLUAJIT_NUMMODE=2 -DLUAJIT_ENABLE_LUA52COMPAT' CC=cc PREFIX=/home/cong/sm/temp/openresty-wg/luajit
@@ -267,7 +276,7 @@ function openresty-build-lua-and-nginx {
 }
 
 function openresty-set-path {
-    ln -s $OPENRESTY_BUILD_TRARGRT_DIR/nginx/sbin/nginx /usr/bin/wg-nginx
+    sudo ln -s $OPENRESTY_BUILD_TRARGRT_DIR/nginx/sbin/nginx /usr/bin/wg-nginx
 }
 
 function openresty-isvalid-nginx-config {
@@ -282,8 +291,7 @@ function openresty-isvalid-nginx-config {
 
 function openresty-my-test-all {
     openresty-set-path ~/sm/temp/openresty-wg
-    prove -I ./vendor/test-nginx/lib -r ./t
-}
+}    
 
 function openresty-my-test {
     openresty-set-path ~/sm/temp/openresty-wg
@@ -391,4 +399,8 @@ function _format_time_diff() {
 
 function openresty-zip() {
     zip -r openresty-wg.zip  ./openresty-wg -x ./openresty-wg/target/\* ./openresty-wg/build/\*
+}
+
+function openresty-flamegraph() {
+ return 
 }
