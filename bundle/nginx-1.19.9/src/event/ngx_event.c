@@ -230,7 +230,7 @@ ngx_process_events_and_timers(ngx_cycle_t *cycle)
             ngx_accept_disabled--;
 
         } else {
-            // wg: 争夺一个锁 拿到锁的人会去真正accept
+            // wg: 争夺一个锁 拿到锁的人会去真正accept,在他hold住锁的期间，其他的worker不能做任何事情
             if (ngx_trylock_accept_mutex(cycle) == NGX_ERROR) {
                 return;
             }

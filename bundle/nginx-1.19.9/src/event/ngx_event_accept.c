@@ -58,7 +58,7 @@ ngx_event_accept(ngx_event_t *ev)
 
 #if (NGX_HAVE_ACCEPT4)
         if (use_accept4) {
-            //net wg: 调用非阻塞的accept方法
+            //net wg: 设置accept的socket是非阻塞的
             // wg-chain http-listen 2: in ngx_event_accept 调用accept 拿到一个代表新连接的s
             s = accept4(lc->fd, &sa.sockaddr, &socklen,
                         SOCK_NONBLOCK | SOCK_CLOEXEC);
