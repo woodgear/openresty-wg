@@ -232,7 +232,7 @@ ngx_http_init_connection(ngx_connection_t *c)
         ngx_http_close_connection(c);
         return;
     }
-
+    // wg-chain http-listen 2+3+1: 设置 conn的data为新创的ngx_http_connection in ngx_http_init_connection 
     c->data = hc;
 
     /* find the server configuration for the address:port */
@@ -331,6 +331,7 @@ ngx_http_init_connection(ngx_connection_t *c)
 
     rev = c->read;
     // event wg: 设置event handle,accept的fd可以read了代表用户有数据了
+    // wg-chain http-listen 2+3+2: 设置conn的read时间的hendle为ngx_http_wait_request_handler，这就是http处理的开始
     rev->handler = ngx_http_wait_request_handler;
     c->write->handler = ngx_http_empty_handler;
 

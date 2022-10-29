@@ -24,7 +24,7 @@ ngx_create_listening(ngx_conf_t *cf, struct sockaddr *sockaddr,
     ngx_listening_t  *ls;
     struct sockaddr  *sa;
     u_char            text[NGX_SOCKADDR_STRLEN];
-
+    // wg-chain http-listen 1-1-1: in ngx_create_listening 在cycle->listening 上创建了一个新的ls
     ls = ngx_array_push(&cf->cycle->listening);
     if (ls == NULL) {
         return NULL;
@@ -486,7 +486,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
 
                 continue;
             }
-            // wg: 创建出socket
+            // wg-chain http-listen 1: in ngx_open_listening_socketsc call ngx_socket 创建出socket
             s = ngx_socket(ls[i].sockaddr->sa_family, ls[i].type, 0);
 
             if (s == (ngx_socket_t) -1) {
@@ -601,6 +601,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
             // wg: src/core/ngx_connection.c#L42 
             ngx_wg_bind(log,s,&ls[i].addr_text,"wg: call bind");
 
+            // wg-chain http-listen 1+1: in ngx_open_listening_socketsc 调用bind
             if (bind(s, ls[i].sockaddr, ls[i].socklen) == -1) {
                 err = ngx_socket_errno;
 
@@ -654,6 +655,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
                 continue;
             }
             // wg: 真正listening端口 这个s的read event就代表可以accept了
+            // wg-chain http-listen 1+2: in ngx_open_listening_socketsc 调用listen
             if (listen(s, ls[i].backlog) == -1) {
                 err = ngx_socket_errno;
 
@@ -688,6 +690,7 @@ ngx_open_listening_sockets(ngx_cycle_t *cycle)
 
             //listen wg: 设置listening的fd  为socket返回的fd
             ls[i].listen = 1;
+            // wg-chain http-listen 1+3: in ngx_open_listening_socketsc 设置ls[i].fd为我们的s socket
             ls[i].fd = s;
         }
 
@@ -1157,6 +1160,7 @@ ngx_get_connection(ngx_socket_t s, ngx_log_t *log)
     rev->index = NGX_INVALID_INDEX;
     wev->index = NGX_INVALID_INDEX;
     // event wg: event 的data 是connection
+    // wg-chain http-listen 2-1-3+1: c->read->data=c 设置connection的read的data指针为自己  in ngx_get_connection
     rev->data = c;
     wev->data = c;
 

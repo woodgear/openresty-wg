@@ -614,7 +614,7 @@ ngx_init_cycle(ngx_cycle_t *old_cycle)
 #endif
         }
     }
-    // wg: 开始监听端口
+    // wg-chain http-listen 1-1: in ngx_init_cycle call ngx_open_listening_sockets 开始监听端口
     if (ngx_open_listening_sockets(cycle) != NGX_OK) {
         goto failed;
     }

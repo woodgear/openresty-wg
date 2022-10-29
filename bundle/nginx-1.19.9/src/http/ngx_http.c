@@ -330,7 +330,7 @@ ngx_http_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
 
     /* optimize the lists of ports, addresses and server names */
-    // wg: listening 1
+    // wg-chain http-listen 1-1-5: in ngx_http_block nginx.conf 中 http block的解析逻辑 call ngx_http_optimize_servers
     if (ngx_http_optimize_servers(cf, cmcf, cmcf->ports) != NGX_OK) {
         return NGX_CONF_ERROR;
     }
@@ -1419,7 +1419,7 @@ ngx_http_optimize_servers(ngx_conf_t *cf, ngx_http_core_main_conf_t *cmcf,
             }
         }
 
-        // wg: listening 2
+        // wg-chain http-listen 1-1-4: in ngx_http_optimize_servers call ngx_http_init_listening  
         if (ngx_http_init_listening(cf, &port[p]) != NGX_OK) {
             return NGX_ERROR;
         }
@@ -1665,7 +1665,7 @@ ngx_http_init_listening(ngx_conf_t *cf, ngx_http_conf_port_t *port)
             i++;
             continue;
         }
-        // wg: listening 3
+        // wg-chain http-listen 1-1-3: in ngx_http_init_listening call  ngx_http_add_listening
         ls = ngx_http_add_listening(cf, &addr[i]);
         if (ls == NULL) {
             return NGX_ERROR;
@@ -1711,13 +1711,16 @@ ngx_http_add_listening(ngx_conf_t *cf, ngx_http_conf_addr_t *addr)
     ngx_http_core_loc_conf_t  *clcf;
     ngx_http_core_srv_conf_t  *cscf;
     // wg: listening 4
+
+    // wg-chain http-listen 1-1-2: in ngx_http_add_listening call ngx_create_listening
     ls = ngx_create_listening(cf, addr->opt.sockaddr, addr->opt.socklen);
     if (ls == NULL) {
         return NULL;
     }
 
     ls->addr_ntop = 1;
-    // wg: listening 设置http请求的handler ngx_event_accept.c#L321
+    // wg: listening 
+    // wg-chain http-listen 1-1-2+1: 设置ls的handler 为 ngx_http_init_connection  in ngx_http_add_listening 
     ls->handler = ngx_http_init_connection;
 
     cscf = addr->default_server;

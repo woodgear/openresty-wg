@@ -59,6 +59,7 @@ ngx_event_accept(ngx_event_t *ev)
 #if (NGX_HAVE_ACCEPT4)
         if (use_accept4) {
             //net wg: 调用非阻塞的accept方法
+            // wg-chain http-listen 2: in ngx_event_accept 调用accept 拿到一个代表新连接的s
             s = accept4(lc->fd, &sa.sockaddr, &socklen,
                         SOCK_NONBLOCK | SOCK_CLOEXEC);
 
@@ -141,6 +142,8 @@ ngx_event_accept(ngx_event_t *ev)
                               - ngx_cycle->free_connection_n;
         //connection wg: 在成功accept之后会在调用一次get_connection
         // TODO add trace here
+
+        // wg-chain http-listen 2+1: in ngx_event_accept 用s调用ngx_get_connection 拿到nginx中一个代表这个新连接的ngx_conn对象
         c = ngx_get_connection(s, ev->log);
 
         if (c == NULL) {
@@ -312,6 +315,7 @@ ngx_event_accept(ngx_event_t *ev)
 
         if (ngx_add_conn && (ngx_event_flags & NGX_USE_EPOLL_EVENT) == 0) {
             // event wg: 这里的connection已经是accept的fd了 当socket可读的时候会调用 c->read.handler,这个handle是在ls->handler(c)的调用中设置的,对http来说就是ngx_http_init_connection中设置的 就是 ngx_http_wait_request_handler   ngx_http_request.c#326
+            // wg-chain http-listen 2+2: in ngx_event_accept 用c调用ngx_add_conn
             if (ngx_add_conn(c) == NGX_ERROR) {
                 ngx_close_accepted_connection(c);
                 return;
@@ -322,6 +326,7 @@ ngx_event_accept(ngx_event_t *ev)
         log->handler = NULL;
         // wg: http wg:  src/http/ngx_http.c#L1714 ngx_http_request.c#l207 ngx_http_init_connection
         // wg: ls上的handler是在ngx_http_add_listening中设置的
+        // wg-chain http-listen 2+3: in ngx_event_accept 调用ls->handler(c).ls 是ev->data->listening
         ls->handler(c);
 
         if (ngx_event_flags & NGX_USE_KQUEUE_EVENT) {

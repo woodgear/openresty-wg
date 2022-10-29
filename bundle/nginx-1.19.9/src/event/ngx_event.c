@@ -839,6 +839,8 @@ ngx_event_process_init(ngx_cycle_t *cycle)
 #endif
         // wg: 给每一个端口分配一个连接 这里的ls[i].fd ,就是监听的端口的socket fd  是在  ngx_init_cycle 的 ngx_open_listening_sockets 最终也就是 ngx_connection.c#L689 中设置的
         // wg: 这里会更新connection的fd
+
+        // wg-chain http-listen 2-1-3: c = ngx_get_connection(ls[i].fd  in ngx_event_process_init
         c = ngx_get_connection(ls[i].fd, cycle->log);
 
         if (c == NULL) {
@@ -848,6 +850,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         c->type = ls[i].type;
         c->log = &ls[i].log;
 
+        // wg-chain http-listen 2-1-2: c->listening = &ls[i]; in ngx_event_process_init
         c->listening = &ls[i];
         // wg: 将listening上的connection设置为从连接池中分配好的一个connection
         ls[i].connection = c;
@@ -921,6 +924,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
 #else
 
         // wg: 将连接的read事件handle设置为 ngx_event_accept 即说明可以accept了 对于udp来言就是可以recvmsg了
+        // wg-chain http-listen 2-1-1: 将连接的read事件handle设置为 ngx_event_accept  in ngx_event_process_init 
         rev->handler = (c->type == SOCK_STREAM) ? ngx_event_accept
                                                 : ngx_event_recvmsg;
 
@@ -955,7 +959,7 @@ ngx_event_process_init(ngx_cycle_t *cycle)
         }
 
 #endif
-        // event wg:  将事件加入到epol中去,这个事件代表可以accept,handle是ngx_accept_evnet
+        // wg-chain http-listen 2-1: in ngx_event_process_init 将事件加入到epol中去,这个事件代表可以accept,handle是ngx_accept_evne
         if (ngx_add_event(rev, NGX_READ_EVENT, 0) == NGX_ERROR) {
             return NGX_ERROR;
         }
