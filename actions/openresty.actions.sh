@@ -15,11 +15,15 @@ function openresty-clean-build {
 function openresty-sync-submodules {
     git submodule update --recursive --remote
 }
-# apt-get install zlib1g-dev libpcre3-dev unzip  libssl-dev perl make build-essential curl libxml2-dev libxslt1-dev ca-certificates  gettext-base libgd-dev libgeoip-dev  libncurses5-dev libperl-dev libreadline-dev libxslt1-dev
-# apk add git bash build-base coreutils curl gd-dev geoip-dev libxslt-dev linux-headers make perl-dev readline-dev zlib-dev gd geoip libgcc libxslt zlib -y
 
 function openresty-docker {
     docker build -t openresty-wg:$(date +"%Y-%m-%d-%H-%M-%S")  -f ./actions/Dockerfile .
+}
+
+# apt-get install zlib1g-dev libpcre3-dev unzip  libssl-dev perl make build-essential curl libxml2-dev libxslt1-dev ca-certificates  gettext-base libgd-dev libgeoip-dev  libncurses5-dev libperl-dev libreadline-dev libxslt1-dev
+# apk add git bash build-base coreutils curl gd-dev geoip-dev libxslt-dev linux-headers make perl-dev readline-dev zlib-dev gd geoip libgcc libxslt zlib -y
+function openresty-build-dep-arch {
+    yay -S bc geoip
 }
 
 function openresty-build-in-docker {
@@ -30,11 +34,14 @@ function openresty-build-in-docker {
 }
 # export OPENRESTY_SOURCE_BASE=$PWD
 # export OPENRESTY_BUILD_TRARGRT_DIR=$PWD/target
+
+export OPENRESTY_SOURCE_BASE=$PWD
+export OPENRESTY_BUILD_TRARGRT_DIR=/opt/openresty
 function openresty-full-build {
-    # if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then
-    #     echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
-    #     return
-    # fi
+    if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then
+        echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
+        return
+    fi
     local start=$(date +%s%3N)
     local source=${OPENRESTY_SOURCE_BASE}
     local target=${OPENRESTY_BUILD_TRARGRT_DIR}
@@ -75,16 +82,20 @@ function openresty-full-build {
 
     openresty-build-lua-and-nginx
 
-    openresty-build-extra-lua
 
     local end=$(date +%s%3N)
     echo "build: all : $(_format_time_diff $start $end)" | tee -a $target/build.record
     keep-gitkeep
     cat $target/build.record
     tree $target
+    rm -rf  /usr/local/bin/nginx
     ln -s  $target/nginx/sbin/nginx /usr/local/bin/nginx
     which nginx
     nginx -V
+
+
+
+    # openresty-build-extra-lua
 }
 
 function keep-gitkeep () {
