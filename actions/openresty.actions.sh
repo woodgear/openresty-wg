@@ -88,8 +88,8 @@ function openresty-full-build {
     keep-gitkeep
     cat $target/build.record
     tree $target
-    rm -rf  /usr/local/bin/nginx
-    ln -s  $target/nginx/sbin/nginx /usr/local/bin/nginx
+    sudo rm -rf  /usr/local/bin/nginx
+    sudo ln -s  $target/nginx/sbin/nginx /usr/local/bin/nginx
     which nginx
     nginx -V
 

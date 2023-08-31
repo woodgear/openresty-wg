@@ -225,7 +225,7 @@ ngx_http_init_connection(ngx_connection_t *c)
     ngx_http_in6_addr_t       *addr6;
 #endif
 
-    ngx_log_error(NGX_LOG_ERR, c->log, 0, "wg: init connection %p fd %d",c,c->fd);
+    ngx_log_debug(NGX_LOG_ERR, c->log, 0, "[wg]: init connection %p fd %d",c,c->fd);
     ngx_http_eyes_test_args(22345);
     hc = ngx_pcalloc(c->pool, sizeof(ngx_http_connection_t));
     if (hc == NULL) {
