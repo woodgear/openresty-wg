@@ -32,12 +32,14 @@ function openresty-build-in-docker {
     cd $source
     openresty-full-build
 }
-# export OPENRESTY_SOURCE_BASE=$PWD
-# export OPENRESTY_BUILD_TRARGRT_DIR=$PWD/target
 
 export OPENRESTY_SOURCE_BASE=$PWD
-export OPENRESTY_BUILD_TRARGRT_DIR=/opt/openresty
-function openresty-full-build {
+export OPENRESTY_BUILD_TRARGRT_DIR=$PWD/target
+
+# export OPENRESTY_SOURCE_BASE=$PWD
+# export OPENRESTY_BUILD_TRARGRT_DIR=/opt/openresty
+function openresty-full-build() (
+    set -e
     if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then
         echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
         return
@@ -90,13 +92,14 @@ function openresty-full-build {
     tree $target
     sudo rm -rf  /usr/local/bin/nginx
     sudo ln -s  $target/nginx/sbin/nginx /usr/local/bin/nginx
+    sudo setcap CAP_NET_BIND_SERVICE=+eip  $target/nginx/sbin/nginx
     which nginx
     nginx -V
 
 
 
     # openresty-build-extra-lua
-}
+)
 
 function keep-gitkeep () {
     touch $source/build/.gitkeep
@@ -222,6 +225,7 @@ function openresty-gen-make {
     local pcre=${2:=$OPENRESTY_BUILD_TRARGRT_DIR/pcre}
     local luajit=${3:=$OPENRESTY_BUILD_TRARGRT_DIR/luajit}
     local source=$OPENRESTY_SOURCE_BASE
+    local target=$OPENRESTY_BUILD_TRARGRT_DIR
     echo $openssl
     echo $pcre
     echo $luajit
