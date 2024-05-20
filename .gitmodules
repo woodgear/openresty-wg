@@ -13,3 +13,15 @@
 [submodule "vendor/lua-resty-balancer"]
 	path = vendor/lua-resty-balancer
 	url = https://github.com/openresty/lua-resty-balancer.git
+[submodule "vendor/opentelemetry-cpp-contrib"]
+	path = vendor/opentelemetry-cpp-contrib
+	url = https://github.com/open-telemetry/opentelemetry-cpp-contrib
+[submodule "vendor/apisix-nginx-module"]
+	path = vendor/apisix-nginx-module
+	url = https://github.com/api7/apisix-nginx-module.git
+[submodule "vendor/apisix"]
+	path = vendor/apisix
+	url = https://github.com/apache/apisix.git
+[submodule "vendor/opentelemetry-lua"]
+	path = vendor/opentelemetry-lua
+	url = https://github.com/yangxikun/opentelemetry-lua.git
