@@ -25,3 +25,12 @@
 [submodule "vendor/opentelemetry-lua"]
 	path = vendor/opentelemetry-lua
 	url = https://github.com/yangxikun/opentelemetry-lua.git
+[submodule "vendor/ModSecurity-nginx"]
+	path = vendor/ModSecurity-nginx
+	url = https://github.com/owasp-modsecurity/ModSecurity-nginx.git
+[submodule "vendor/ingress-nginx"]
+	path = vendor/ingress-nginx
+	url = https://github.com/kubernetes/ingress-nginx.git
+[submodule "vendor/openresty-gdb-utils"]
+	path = vendor/openresty-gdb-utils
+	url = https://github.com/openresty/openresty-gdb-utils
