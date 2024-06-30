@@ -8,6 +8,7 @@ my $infile = shift or
     die "No input file specified.\n";
 
 my %funcs;
+my $root = $ENV{'FIX_LUA_ROOT'};
 
 open my $in, $infile
     or die "Cannot open $infile for reading: $!\n";
@@ -38,8 +39,11 @@ while (<$in>) {
         } else {
             $file = $path;
         }
-
+        if (defined $root) {
+            $path = "$root/$path";
+        }
         if ($ln > 0) {
+            # print "[wg] looking for $path:$ln\n"; 
             open my $in, $path
                 or die "failed to open $path for reading: $!\n";
             while (<$in>) {
