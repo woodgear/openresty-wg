@@ -37,6 +37,8 @@
 [submodule "vendor/stapxx"]
 	path = vendor/stapxx
 	url = git@github.com:woodgear/stapxx.git
+    branch = kong-cong
 [submodule "vendor/systemtap-wg"]
 	path = vendor/systemtap-wg
 	url = git@github.com:woodgear/systemtap-wg.git
+    branch = wg-5.1
