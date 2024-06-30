@@ -34,3 +34,9 @@
 [submodule "vendor/openresty-gdb-utils"]
 	path = vendor/openresty-gdb-utils
 	url = https://github.com/openresty/openresty-gdb-utils
+[submodule "vendor/stapxx"]
+	path = vendor/stapxx
+	url = git@github.com:woodgear/stapxx.git
+[submodule "vendor/systemtap-wg"]
+	path = vendor/systemtap-wg
+	url = git@github.com:woodgear/systemtap-wg.git
