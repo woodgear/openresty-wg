@@ -33,17 +33,14 @@ function openresty-build-in-docker {
     openresty-full-build
 }
 
-export OPENRESTY_SOURCE_BASE=$PWD
-export OPENRESTY_BUILD_TRARGRT_DIR=$PWD/target
-
-# export OPENRESTY_SOURCE_BASE=$PWD
-# export OPENRESTY_BUILD_TRARGRT_DIR=/opt/openresty
 function openresty-full-build() (
     set -e
-    if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then
-        echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
-        return
-    fi
+    #if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then
+    #    echo "workdir not clean use '    git restore -s@ -SW  --  ./ && git clean -d -x -f' if you want"
+    #    return
+    #fi
+    export OPENRESTY_SOURCE_BASE=$PWD
+    export OPENRESTY_BUILD_TRARGRT_DIR=$OPENRESTY_SOURCE_BASE/target/
     local start=$(date +%s%3N)
     local source=${OPENRESTY_SOURCE_BASE}
     local target=${OPENRESTY_BUILD_TRARGRT_DIR}
