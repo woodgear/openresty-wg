@@ -42,3 +42,21 @@
 	path = vendor/systemtap-wg
 	url = git@github.com:woodgear/systemtap-wg.git
   branch = wg-5.1
+[submodule "vendor/openssl"]
+	path = vendor/openssl
+	url = git@github.com:woodgear/openssl.git
+	branch = openssl-1.1.1w
+
+[submodule "vendor/pcre-8.45"]
+	path = vendor/pcre-8.45
+	url = git@github.com:woodgear/pcre-8.45.git
+[submodule "vendor/luajit2"]
+	path = vendor/luajit2
+	url = git@github.com:woodgear/luajit2.git
+	branch = 2.1-20231117.x
+
+[submodule "vendor/nginx"]
+	path = vendor/nginx
+	url = git@github.com:woodgear/nginx.git
+	branch = openresty-1.25.3.1
+

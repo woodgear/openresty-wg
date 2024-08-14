@@ -7,5 +7,6 @@ log
 *.log
 Makefile
 build/.gitkeep
+bundle/nginx-1.25.3
 target/.gitkeep
 openresty-1.25.3.1
