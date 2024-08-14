@@ -116,7 +116,7 @@ supports the following embedded variables:
 
 the current slice range in
 L<HTTP
-byte range|https://tools.ietf.org/html/rfc7233#section-2.1> format,
+byte range|https://datatracker.ietf.org/doc/html/rfc7233#section-2.1> format,
 for example, C<bytes=0-1048575>.
 
 

@@ -13,7 +13,9 @@ ngx_stream_keyval_module - Module ngx_stream_keyval_module
 
 The C<ngx_stream_keyval_module> module (1.13.7) creates variables
 with values taken from key-value pairs managed by the
-L<API|ngx_http_api_module>.
+L<API|ngx_http_api_module>
+or a variable that can also be set with
+L<njs|https://github.com/nginx/njs-examples/>.
 
 
 
@@ -125,6 +127,7 @@ L<API|ngx_http_api_module>.
 The optional C<state> parameter specifies a I<C<file>>
 that keeps the current state of the key-value database in the JSON format
 and makes it persistent across nginx restarts.
+Changing the file content directly should be avoided.
 
 
 

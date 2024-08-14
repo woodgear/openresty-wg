@@ -26,7 +26,9 @@ L<ngx_http_v2_module|ngx_http_v2_module> module.
 
     
     server {
-        listen 9000 http2;
+        listen 9000;
+    
+        http2 on;
     
         location / {
             grpc_pass 127.0.0.1:9000;
@@ -404,7 +406,7 @@ a server returned a response with the code 429;
 
 
 normally, requests with a
-L<non-idempotent|https://tools.ietf.org/html/rfc7231#section-4.2.2>
+L<non-idempotent|https://datatracker.ietf.org/doc/html/rfc7231#section-4.2.2>
 method
 (C<POST>, C<LOCK>, C<PATCH>)
 are not passed to the next server
@@ -891,7 +893,7 @@ The full list can be viewed using the
 =head2 grpc_ssl_conf_command
 
 
-B<syntax:> grpc_ssl_conf_command I<I<C<command>>>
+B<syntax:> grpc_ssl_conf_command I<I<C<name>> I<C<value>>>
 
 
 
@@ -1058,7 +1060,7 @@ B<syntax:> grpc_ssl_protocols I<
     [C<TLSv1.3>]>
 
 
-B<default:> I<TLSv1 TLSv1.1 TLSv1.2>
+B<default:> I<TLSv1 TLSv1.1 TLSv1.2 TLSv1.3>
 
 
 B<context:> I<http>
@@ -1074,6 +1076,17 @@ B<context:> I<location>
 
 
 Enables the specified protocols for requests to a gRPC SSL server.
+
+
+
+
+
+
+B<NOTE>
+
+The C<TLSv1.3> parameter is used by default
+since 1.23.4.
+
 
 
 

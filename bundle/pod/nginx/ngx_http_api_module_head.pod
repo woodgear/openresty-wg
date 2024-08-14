@@ -120,21 +120,22 @@ a supported API version in the URI.
 Examples of API requests with this configuration:
 
     
-    http://127.0.0.1/api/6/
-    http://127.0.0.1/api/6/nginx
-    http://127.0.0.1/api/6/connections
-    http://127.0.0.1/api/6/http/requests
-    http://127.0.0.1/api/6/http/server_zones/server_backend
-    http://127.0.0.1/api/6/http/caches/cache_backend
-    http://127.0.0.1/api/6/http/upstreams/backend
-    http://127.0.0.1/api/6/http/upstreams/backend/servers/
-    http://127.0.0.1/api/6/http/upstreams/backend/servers/1
-    http://127.0.0.1/api/6/http/keyvals/one?key=arg1
-    http://127.0.0.1/api/6/stream/
-    http://127.0.0.1/api/6/stream/server_zones/server_backend
-    http://127.0.0.1/api/6/stream/upstreams/
-    http://127.0.0.1/api/6/stream/upstreams/backend
-    http://127.0.0.1/api/6/stream/upstreams/backend/servers/1
+    http://127.0.0.1/api/9/
+    http://127.0.0.1/api/9/nginx
+    http://127.0.0.1/api/9/connections
+    http://127.0.0.1/api/9/workers
+    http://127.0.0.1/api/9/http/requests
+    http://127.0.0.1/api/9/http/server_zones/server_backend
+    http://127.0.0.1/api/9/http/caches/cache_backend
+    http://127.0.0.1/api/9/http/upstreams/backend
+    http://127.0.0.1/api/9/http/upstreams/backend/servers/
+    http://127.0.0.1/api/9/http/upstreams/backend/servers/1
+    http://127.0.0.1/api/9/http/keyvals/one?key=arg1
+    http://127.0.0.1/api/9/stream/
+    http://127.0.0.1/api/9/stream/server_zones/server_backend
+    http://127.0.0.1/api/9/stream/upstreams/
+    http://127.0.0.1/api/9/stream/upstreams/backend
+    http://127.0.0.1/api/9/stream/upstreams/backend/servers/1
 
 
 
@@ -176,7 +177,7 @@ By default, the API is read-only.
 All API requests should contain a supported API version in the URI.
 If the request URI equals the location prefix,
 the list of supported API versions is returned.
-The current API version is “C<6>”.
+The current API version is “C<9>”.
 
 
 
@@ -186,7 +187,7 @@ The optional “C<fields>” argument in the request line
 specifies which fields of the requested objects will be output:
 
     
-    http://127.0.0.1/api/6/nginx?fields=version,build
+    http://127.0.0.1/api/9/nginx?fields=version,build
 
 
 
@@ -253,6 +254,44 @@ redirect|ngx_http_core_module> happens during request processing.
 
 =over
 
+
+
+
+=item *
+
+The E<sol>workersE<sol> data
+were added in version 9.
+
+
+
+=item *
+
+Detailed failure counters were added to SSL statistics
+in version 8 (1.23.2).
+
+
+
+=item *
+
+The C<ssl> data
+for each HTTP
+upstream,
+server zone,
+and stream
+upstream,
+server zone,
+were added in version 8 (1.21.6).
+
+
+
+=item *
+
+The C<codes> data
+in C<responses> for each HTTP
+upstream,
+server zone, and
+location zone
+were added in version 7.
 
 
 
@@ -333,6 +372,7 @@ were added in version 2.
 
 
 =back
+
 
 
 

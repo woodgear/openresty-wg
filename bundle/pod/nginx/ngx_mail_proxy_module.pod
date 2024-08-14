@@ -107,7 +107,7 @@ This directive appeared in version 1.19.8.
 
 Enables the
 L<PROXY
-protocol|http://www.haproxy.org/download/1.5/doc/proxy-protocol.txt> for connections to a backend.
+protocol|http://www.haproxy.org/download/1.8/doc/proxy-protocol.txt> for connections to a backend.
 
 
 

@@ -263,7 +263,7 @@ a hyphen (“C<->”) will be logged.
 
 For C<json> escaping,
 all characters not allowed
-in JSON L<strings|https://tools.ietf.org/html/rfc8259#section-7>
+in JSON L<strings|https://datatracker.ietf.org/doc/html/rfc8259#section-7>
 will be escaped:
 characters “C<">” and
 “C<\>” are escaped as

@@ -360,6 +360,28 @@ This module is not built by default.
 
 
 =item 
+C<--with-http_v3_module>
+
+
+
+
+
+enables building a module that provides support for
+L<HTTPE<sol>3|ngx_http_v3_module>.
+This module is not built by default.
+An SSL library that provides HTTPE<sol>3 support
+is recommended to build and run this module, such as
+L<BoringSSL|https://boringssl.googlesource.com/boringssl>,
+L<LibreSSL|https://www.libressl.org>, or
+L<QuicTLS|https://github.com/quictls/openssl>.
+Otherwise, if using the OpenSSL library,
+OpenSSL compatibility layer will be used
+that does not support QUIC
+L<early data|ngx_http_ssl_module>.
+
+
+
+=item 
 C<--with-http_realip_module>
 
 
@@ -1406,7 +1428,7 @@ C<--with-stream_ssl_preread_module>
 enables building the
 L<ngx_stream_ssl_preread_module|ngx_stream_ssl_preread_module>
 module that allows extracting information from the
-L<ClientHello|https://tools.ietf.org/html/rfc5246#section-7.4.1.2>
+L<ClientHello|https://datatracker.ietf.org/doc/html/rfc5246#section-7.4.1.2>
 message without terminating SSLE<sol>TLS.
 This module is not built by default.
 
@@ -1788,8 +1810,7 @@ C<--with-pcre=I<C<path>>>
 
 
 sets the path to the sources of the PCRE library.
-The library distribution (version
-4.4E<mdash>8.43) needs to be downloaded from the
+The library distribution needs to be downloaded from the
 L<PCRE|http://www.pcre.org> site and extracted.
 The rest is done by nginx’s C<.E<sol>configure> and
 C<make>.
@@ -1825,6 +1846,18 @@ L<ngx_core_module> directive).
 
 
 
+=item 
+C<--without-pcre2>
+
+
+
+
+
+disables use of the PCRE2 library
+instead of the original PCRE library (1.21.5).
+
+
+
 
 =back
 
@@ -1848,7 +1881,7 @@ C<--with-zlib=I<C<path>>>
 
 sets the path to the sources of the zlib library.
 The library distribution (version
-1.1.3E<mdash>1.2.11) needs to be downloaded from the
+1.1.3E<mdash>1.3) needs to be downloaded from the
 L<zlib|http://zlib.net> site and extracted.
 The rest is done by nginx’s C<.E<sol>configure> and
 C<make>.
@@ -1995,8 +2028,8 @@ Example of parameters usage (all of this needs to be typed in one line):
         --conf-path=/usr/local/nginx/nginx.conf
         --pid-path=/usr/local/nginx/nginx.pid
         --with-http_ssl_module
-        --with-pcre=../pcre-8.44
-        --with-zlib=../zlib-1.2.11
+        --with-pcre=../pcre2-10.39
+        --with-zlib=../zlib-1.3
 
 
 

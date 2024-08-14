@@ -28,7 +28,7 @@ files should be specified:
         server_name         www.example.com;
         ssl_certificate     <b>www.example.com.crt</b>;
         ssl_certificate_key <b>www.example.com.key</b>;
-        ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+        ssl_protocols       TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
         ssl_ciphers         HIGH:!aNULL:!MD5;
         ...
     }
@@ -61,7 +61,7 @@ L<ngx_http_ssl_module>
 can be used to limit connections
 to include only the strong versions and ciphers of SSLE<sol>TLS.
 By default nginx uses
-“C<ssl_protocols TLSv1 TLSv1.1 TLSv1.2>”
+“C<ssl_protocols TLSv1 TLSv1.1 TLSv1.2 TLSv1.3>”
 and “C<ssl_ciphers HIGH:!aNULL:!MD5>”,
 so configuring them explicitly is generally not needed.
 Note that default values of these directives were
@@ -113,7 +113,7 @@ with 10 megabyte shared session cache:
     
             ssl_certificate     www.example.com.crt;
             ssl_certificate_key www.example.com.key;
-            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
             ssl_ciphers         HIGH:!aNULL:!MD5;
             ...
 
@@ -504,6 +504,13 @@ The shared SSL session cache has been supported since 0.5.6.
 
 =over
 
+
+
+
+=item *
+
+Version 1.23.4 and later: the default SSL protocols are TLSv1,
+TLSv1.1, TLSv1.2, and TLSv1.3 (if supported by the OpenSSL library).
 
 
 

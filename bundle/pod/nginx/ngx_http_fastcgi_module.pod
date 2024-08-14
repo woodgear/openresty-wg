@@ -1050,7 +1050,7 @@ This has lower priority than using the directive parameters.
 =item *
 
 The
-“L<stale-while-revalidate|https://tools.ietf.org/html/rfc5861#section-3>”
+“L<stale-while-revalidate|https://datatracker.ietf.org/doc/html/rfc5861#section-3>”
 extension of the C<Cache-Control> header field permits
 using a stale cached response if it is currently being updated.
 
@@ -1059,7 +1059,7 @@ using a stale cached response if it is currently being updated.
 =item *
 
 The
-“L<stale-if-error|https://tools.ietf.org/html/rfc5861#section-4>”
+“L<stale-if-error|https://datatracker.ietf.org/doc/html/rfc5861#section-4>”
 extension of the C<Cache-Control> header field permits
 using a stale cached response in case of an error.
 
@@ -1766,7 +1766,7 @@ a server returned a response with the code 429 (1.11.13);
 
 
 normally, requests with a
-L<non-idempotent|https://tools.ietf.org/html/rfc7231#section-4.2.2>
+L<non-idempotent|https://datatracker.ietf.org/doc/html/rfc7231#section-4.2.2>
 method
 (C<POST>, C<LOCK>, C<PATCH>)
 are not passed to the next server

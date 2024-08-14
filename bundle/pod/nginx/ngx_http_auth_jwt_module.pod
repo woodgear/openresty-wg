@@ -13,13 +13,12 @@ ngx_http_auth_jwt_module - Module ngx_http_auth_jwt_module
 
 The C<ngx_http_auth_jwt_module> module (1.11.3)
 implements client authorization by validating the provided
-L<JSON Web Token|https://tools.ietf.org/html/rfc7519> (JWT)
+L<JSON Web Token|https://datatracker.ietf.org/doc/html/rfc7519> (JWT)
 using the specified keys.
-JWT claims can be encoded in a
-L<JSON Web Signature|https://tools.ietf.org/html/rfc7515> (JWS)
-or
-L<JSON Web Encryption|https://tools.ietf.org/html/rfc7516> (JWE)
-(1.19.7) structure.
+The module supports
+L<JSON Web Signature|https://datatracker.ietf.org/doc/html/rfc7515> (JWS),
+L<JSON Web Encryption|https://datatracker.ietf.org/doc/html/rfc7516> (JWE)
+(1.19.7), and Nested JWT (1.21.0).
 The module can be used for
 L<OpenID Connect|http://openid.net/specs/openid-connect-core-1_0.html>
 authentication.
@@ -159,6 +158,12 @@ dirE<mdash>direct use of a shared symmetric key as the content encryption key
 
 
 
+=item *
+
+RSA-OAEP, RSA-OAEP-256, RSA-OAEP-384, RSA-OAEP-512 (1.21.0)
+
+
+
 =back
 
 
@@ -223,7 +228,7 @@ The optional C<token> parameter specifies a variable
 that contains JSON Web Token.
 By default, JWT is passed in the C<Authorization> header
 as a
-L<Bearer Token|https://tools.ietf.org/html/rfc6750>.
+L<Bearer Token|https://datatracker.ietf.org/doc/html/rfc6750>.
 JWT may be also passed as a cookie or a part of a query string:
 
     
@@ -331,6 +336,44 @@ and the result was undefined for arrays.
 
 
 
+=head2 auth_jwt_key_cache
+
+
+B<syntax:> auth_jwt_key_cache I<I<C<time>>>
+
+
+B<default:> I<0>
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 1.21.4.
+
+
+
+
+
+Enables or disables caching of keys
+obtained from a file
+or from a subrequest,
+and sets caching time for them.
+Caching of keys obtained from variables is not supported.
+By default, caching of keys is disabled.
+
+
+
+
+
+
+
 =head2 auth_jwt_key_file
 
 
@@ -354,9 +397,25 @@ B<context:> I<limit_except>
 
 
 Specifies a I<C<file>> in
-L<JSON Web Key Set|https://tools.ietf.org/html/rfc7517#section-5>
+L<JSON Web Key Set|https://datatracker.ietf.org/doc/html/rfc7517#section-5>
 format for validating JWT signature.
 Parameter value can contain variables.
+
+
+
+
+
+Several C<auth_jwt_key_file> directives
+can be specified on the same level (1.21.1):
+
+    
+    auth_jwt_key_file conf/keys.json;
+    auth_jwt_key_file conf/key.jwk;
+
+
+If at least one of the specified keys cannot be loaded or processed,
+nginx will return the
+C<500> (C<Internal Server Error>) error.
 
 
 
@@ -391,7 +450,7 @@ This directive appeared in version 1.15.6.
 
 
 Allows retrieving a
-L<JSON Web Key Set|https://tools.ietf.org/html/rfc7517#section-5>
+L<JSON Web Key Set|https://datatracker.ietf.org/doc/html/rfc7517#section-5>
 file from a subrequest for validating JWT signature and
 sets the URI where the subrequest will be sent to.
 Parameter value can contain variables.
@@ -417,6 +476,17 @@ it is recommended to cache the key file:
     }
 
 
+Several C<auth_jwt_key_request> directives
+can be specified on the same level (1.21.1):
+
+    
+    auth_jwt_key_request /jwks_uri;
+    auth_jwt_key_request /jwks2_uri;
+
+
+If at least one of the specified keys cannot be loaded or processed,
+nginx will return the
+C<500> (C<Internal Server Error>) error.
 
 
 
@@ -451,9 +521,9 @@ This directive appeared in version 1.13.10.
 
 Sets the maximum allowable leeway to compensate
 clock skew when verifying the
-L<exp|https://tools.ietf.org/html/rfc7519#section-4.1.4>
+L<exp|https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.4>
 and
-L<nbf|https://tools.ietf.org/html/rfc7519#section-4.1.5>
+L<nbf|https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.5>
 JWT claims.
 
 
@@ -465,7 +535,9 @@ JWT claims.
 =head2 auth_jwt_type
 
 
-B<syntax:> auth_jwt_type I<I<C<signed>> E<verbar> I<C<encrypted>>>
+B<syntax:> auth_jwt_type I<I<C<signed>> E<verbar>
+        I<C<encrypted>> E<verbar>
+        I<C<nested>>>
 
 
 B<default:> I<signed>
@@ -491,8 +563,71 @@ This directive appeared in version 1.19.7.
 
 
 Specifies which type of JSON Web Token to expect:
-JWS (C<signed>) or
-JWE (C<encrypted>).
+JWS (C<signed>),
+JWE (C<encrypted>),
+or signed and then encrypted
+Nested JWT (C<nested>) (1.21.0).
+
+
+
+
+
+
+
+=head2 auth_jwt_require
+
+
+B<syntax:> auth_jwt_require I<
+    I<C<$value>> ...
+    [C<error>=C<401> E<verbar>
+                              C<403>]
+>
+
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+B<context:> I<limit_except>
+
+
+
+This directive appeared in version 1.21.2.
+
+
+
+
+
+Specifies additional checks for JWT validation.
+The value can contain text, variables, and their combination,
+and must start with a variable (1.21.7).
+The authentication will succeed only
+if all the values are not empty and are not equal to “0”.
+
+    
+    map $jwt_claim_iss $valid_jwt_iss {
+        "good" 1;
+    }
+    ...
+    
+    auth_jwt_require $valid_jwt_iss;
+
+
+
+
+
+
+
+If any of the checks fails,
+the C<401> error code is returned.
+The optional C<error> parameter (1.21.7)
+allows redefining the error code to C<403>.
 
 
 
@@ -521,7 +656,7 @@ supports embedded variables:
 
 
 returns the value of a specified
-L<JOSE header|https://tools.ietf.org/html/rfc7515#section-4>
+L<JOSE header|https://datatracker.ietf.org/doc/html/rfc7515#section-4>
 
 
 
@@ -531,7 +666,7 @@ L<JOSE header|https://tools.ietf.org/html/rfc7515#section-4>
 
 
 returns the value of a specified
-L<JWT claim|https://tools.ietf.org/html/rfc7519#section-4>
+L<JWT claim|https://datatracker.ietf.org/doc/html/rfc7519#section-4>
 
 
 
@@ -548,6 +683,19 @@ are available only after decryption which occurs during the
 L<Access|development_guide> phase.
 
 
+
+
+
+=item C<$jwt_payload>
+
+
+
+
+returns the decrypted top-level payload
+of C<nested>
+or C<encrypted> tokens (1.21.2).
+For nested tokens returns the enclosed JWS token.
+For encrypted tokens returns JSON with claims.
 
 
 

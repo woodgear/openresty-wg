@@ -224,6 +224,39 @@ depending on a certain condition:
 
 
 
+=head2 proxy_half_close
+
+
+B<syntax:> proxy_half_close I<C<on> E<verbar> C<off>>
+
+
+B<default:> I<off>
+
+
+B<context:> I<stream>
+
+
+B<context:> I<server>
+
+
+
+This directive appeared in version 1.21.4.
+
+
+
+
+
+Enables or disables closing
+each direction of a TCP connection independently (“TCP half-close”).
+If enabled, proxying over TCP will be kept
+until both sides close the connection.
+
+
+
+
+
+
+
 =head2 proxy_next_upstream
 
 
@@ -397,7 +430,7 @@ This directive appeared in version 1.9.2.
 
 Enables the
 L<PROXY
-protocol|http://www.haproxy.org/download/1.5/doc/proxy-protocol.txt> for connections to a proxied server.
+protocol|http://www.haproxy.org/download/1.8/doc/proxy-protocol.txt> for connections to a proxied server.
 
 
 
@@ -696,7 +729,7 @@ The full list can be viewed using the
 =head2 proxy_ssl_conf_command
 
 
-B<syntax:> proxy_ssl_conf_command I<I<C<command>>>
+B<syntax:> proxy_ssl_conf_command I<I<C<name>> I<C<value>>>
 
 
 
@@ -852,7 +885,7 @@ B<syntax:> proxy_ssl_protocols I<
     [C<TLSv1.3>]>
 
 
-B<default:> I<TLSv1 TLSv1.1 TLSv1.2>
+B<default:> I<TLSv1 TLSv1.1 TLSv1.2 TLSv1.3>
 
 
 B<context:> I<stream>
@@ -865,6 +898,17 @@ B<context:> I<server>
 
 
 Enables the specified protocols for connections to a proxied server.
+
+
+
+
+
+
+B<NOTE>
+
+The C<TLSv1.3> parameter is used by default
+since 1.23.4.
+
 
 
 

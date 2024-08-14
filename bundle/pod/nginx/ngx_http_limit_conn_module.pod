@@ -91,7 +91,8 @@ allow only one connection per an IP address at a time.
 
 B<NOTE>
 
-In HTTPE<sol>2 and SPDY, each concurrent request is considered a separate connection.
+In HTTPE<sol>2 and HTTPE<sol>3,
+each concurrent request is considered a separate connection.
 
 
 

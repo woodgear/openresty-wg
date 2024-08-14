@@ -480,7 +480,7 @@ The full list can be viewed using the
 =head2 zone_sync_ssl_conf_command
 
 
-B<syntax:> zone_sync_ssl_conf_command I<I<C<command>>>
+B<syntax:> zone_sync_ssl_conf_command I<I<C<name>> I<C<value>>>
 
 
 

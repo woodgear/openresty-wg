@@ -39,6 +39,9 @@ L<0.4.0|changes>.
     
         js_set $foo     http.foo;
         js_set $summary http.summary;
+        js_set $hash    http.hash;
+    
+        resolver 10.0.0.1;
     
         server {
             listen 8000;
@@ -54,6 +57,18 @@ L<0.4.0|changes>.
     
             location = /hello {
                 js_content http.hello;
+            }
+    
+            # since 0.7.0
+            location = /fetch {
+                js_content                   http.fetch;
+                js_fetch_trusted_certificate /path/to/ISRG_Root_X1.pem;
+            }
+    
+            # since 0.7.0
+            location = /crypto {
+                add_header Hash $hash;
+                return     200;
             }
         }
     }
@@ -113,7 +128,21 @@ The F<http.js> file:
         r.return(200, "Hello world!");
     }
     
-    export default {foo, summary, baz, hello};
+    // since 0.7.0
+    async function fetch(r) {
+        let results = await Promise.all([ngx.fetch('https://nginx.org/'),
+                                         ngx.fetch('https://nginx.org/en/')]);
+    
+        r.return(200, JSON.stringify(results, undefined, 4));
+    }
+    
+    // since 0.7.0
+    async function hash(r) {
+        let hash = await crypto.subtle.digest('SHA-512', r.headersIn.host);
+        r.setReturnValue(Buffer.from(hash).toString('hex'));
+    }
+    
+    export default {foo, summary, baz, hello, fetch, hash};
 
 
 
@@ -131,6 +160,9 @@ B<syntax:> js_body_filter I<I<C<function>> E<verbar> I<C<module.function>>
 
 
 B<context:> I<location>
+
+
+B<context:> I<if in location>
 
 
 B<context:> I<limit_except>
@@ -238,6 +270,35 @@ to enforce chunked transfer encoding.
 
 
 
+B<NOTE>
+
+As the C<js_body_filter> handler
+returns its result immediately, it supports
+only synchronous operations.
+Thus, asynchronous operations such as
+L<r.subrequest()|reference>
+or
+L<setTimeout()|reference>
+are not supported.
+
+
+
+
+
+
+
+B<NOTE>
+
+The directive can be specified inside the
+L<if|ngx_http_rewrite_module> block
+since L<0.7.7|changes>.
+
+
+
+
+
+
+
 
 =head2 js_content
 
@@ -247,6 +308,9 @@ B<syntax:> js_content I<I<C<function>> E<verbar> I<C<module.function>>>
 
 
 B<context:> I<location>
+
+
+B<context:> I<if in location>
 
 
 B<context:> I<limit_except>
@@ -264,6 +328,307 @@ a module function can be referenced.
 
 
 
+B<NOTE>
+
+The directive can be specified inside the
+L<if|ngx_http_rewrite_module> block
+since L<0.7.7|changes>.
+
+
+
+
+
+
+
+
+=head2 js_fetch_buffer_size
+
+
+B<syntax:> js_fetch_buffer_size I<I<C<size>>>
+
+
+B<default:> I<16k>
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.4.
+
+
+
+
+
+Sets the I<C<size>> of the buffer used for reading and writing
+with L<Fetch API|reference>.
+
+
+
+
+
+
+
+=head2 js_fetch_ciphers
+
+
+B<syntax:> js_fetch_ciphers I<I<C<ciphers>>>
+
+
+B<default:> I<HIGH:!aNULL:!MD5>
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.0.
+
+
+
+
+
+Specifies the enabled ciphers for HTTPS requests
+with L<Fetch API|reference>.
+The ciphers are specified in the format understood by the
+OpenSSL library.
+
+
+
+
+
+The full list can be viewed using the
+“C<openssl ciphers>” command.
+
+
+
+
+
+
+
+=head2 js_fetch_max_response_buffer_size
+
+
+B<syntax:> js_fetch_max_response_buffer_size I<I<C<size>>>
+
+
+B<default:> I<1m>
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.4.
+
+
+
+
+
+Sets the maximum I<C<size>> of the response received
+with L<Fetch API|reference>.
+
+
+
+
+
+
+
+=head2 js_fetch_protocols
+
+
+B<syntax:> js_fetch_protocols I<
+    [C<TLSv1>]
+    [C<TLSv1.1>]
+    [C<TLSv1.2>]
+    [C<TLSv1.3>]>
+
+
+B<default:> I<TLSv1 TLSv1.1 TLSv1.2>
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.0.
+
+
+
+
+
+Enables the specified protocols for HTTPS requests
+with L<Fetch API|reference>.
+
+
+
+
+
+
+
+=head2 js_fetch_timeout
+
+
+B<syntax:> js_fetch_timeout I<I<C<time>>>
+
+
+B<default:> I<60s>
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.4.
+
+
+
+
+
+Defines a timeout for reading and writing
+for L<Fetch API|reference>.
+The timeout is set only between two successive readE<sol>write operations,
+not for the whole response.
+If no data is transmitted within this time, the connection is closed.
+
+
+
+
+
+
+
+=head2 js_fetch_trusted_certificate
+
+
+B<syntax:> js_fetch_trusted_certificate I<I<C<file>>>
+
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.0.
+
+
+
+
+
+Specifies a I<C<file>> with trusted CA certificates in the PEM format
+used to
+L<verify|reference>
+the HTTPS certificate
+with L<Fetch API|reference>.
+
+
+
+
+
+
+
+=head2 js_fetch_verify
+
+
+B<syntax:> js_fetch_verify I<C<on> E<verbar> C<off>>
+
+
+B<default:> I<on>
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.4.
+
+
+
+
+
+Enables or disables verification of the HTTPS server certificate
+with L<Fetch API|reference>.
+
+
+
+
+
+
+
+=head2 js_fetch_verify_depth
+
+
+B<syntax:> js_fetch_verify_depth I<I<C<number>>>
+
+
+B<default:> I<100>
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.0.
+
+
+
+
+
+Sets the verification depth in the HTTPS server certificates chain
+with L<Fetch API|reference>.
+
+
+
+
+
+
 
 =head2 js_header_filter
 
@@ -273,6 +638,9 @@ B<syntax:> js_header_filter I<I<C<function>> E<verbar> I<C<module.function>>>
 
 
 B<context:> I<location>
+
+
+B<context:> I<if in location>
 
 
 B<context:> I<limit_except>
@@ -293,6 +661,35 @@ The directive allows changing arbitrary header fields of a response header.
 
 
 
+B<NOTE>
+
+As the C<js_header_filter> handler
+returns its result immediately, it supports
+only synchronous operations.
+Thus, asynchronous operations such as
+L<r.subrequest()|reference>
+or
+L<setTimeout()|reference>
+are not supported.
+
+
+
+
+
+
+
+B<NOTE>
+
+The directive can be specified inside the
+L<if|ngx_http_rewrite_module> block
+since L<0.7.7|changes>.
+
+
+
+
+
+
+
 
 =head2 js_import
 
@@ -303,6 +700,12 @@ I<C<export_name from module.js>>>
 
 
 B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
 
 
 
@@ -332,6 +735,18 @@ C<http.foo> is used to refer to it.
 
 
 Several C<js_import> directives can be specified.
+
+
+
+
+
+
+B<NOTE>
+
+The directive can be specified on the
+C<server> and C<location> level
+since L<0.7.7|changes>.
+
 
 
 
@@ -372,9 +787,11 @@ Specifies a file that implements location and variable handlers in njs:
 
 
 
-The directive is deprecated since
-L<0.4.0|changes>,
-the L</js_import> directive should be used instead.
+The directive was made obsolete in version
+L<0.4.0|changes>
+and was removed in version
+L<0.7.1|changes>.
+The L</js_import> directive should be used instead.
 
 
 
@@ -393,6 +810,12 @@ I<C<path>>>
 B<context:> I<http>
 
 
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
 
 This directive appeared in version 0.3.0.
 
@@ -401,6 +824,165 @@ This directive appeared in version 0.3.0.
 
 
 Sets an additional path for njs modules.
+
+
+
+
+
+
+B<NOTE>
+
+The directive can be specified on the
+C<server> and C<location> level
+since L<0.7.7|changes>.
+
+
+
+
+
+
+
+
+=head2 js_periodic
+
+
+B<syntax:> js_periodic I<I<C<function>> E<verbar>
+        I<C<module.function>>
+        [C<interval>=I<C<time>>]
+        [C<jitter>=I<C<number>>]
+        [C<worker_affinity>=I<C<mask>>]>
+
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.8.1.
+
+
+
+
+
+Specifies a content handler to run at regular interval.
+The handler receives a
+L<session object|reference>
+as its first argument,
+it also has access to global objects such as
+L<ngx|reference>.
+
+
+
+
+
+The optional C<interval> parameter
+sets the interval between two consecutive runs,
+by default, 5 seconds.
+
+
+
+
+
+The optional C<jitter> parameter sets the time within which
+the location content handler will be randomly delayed,
+by default, there is no delay.
+
+
+
+
+
+By default, the C<js_handler> is executed on worker process 0.
+The optional C<worker_affinity> parameter
+allows specifying particular worker processes
+where the location content handler should be executed.
+Each worker process set is represented by a bitmask of allowed worker processes.
+The C<all> mask allows the handler to be executed
+in all worker processes.
+
+
+
+
+
+Example:
+
+    
+    example.conf:
+    
+    location @periodics {
+        # to be run at 1 minute intervals in worker process 0
+        js_periodic main.handler interval=60s;
+    
+        # to be run at 1 minute intervals in all worker processes
+        js_periodic main.handler interval=60s worker_affinity=all;
+    
+        # to be run at 1 minute intervals in worker processes 1 and 3
+        js_periodic main.handler interval=60s worker_affinity=0101;
+    
+        resolver 10.0.0.1;
+        js_fetch_trusted_certificate /path/to/ISRG_Root_X1.pem;
+    }
+    
+    example.js:
+    
+    async function handler(s) {
+        let reply = await ngx.fetch('https://nginx.org/en/docs/njs/');
+        let body = await reply.text();
+    
+        ngx.log(ngx.INFO, body);
+    }
+
+
+
+
+
+
+
+
+
+=head2 js_preload_object
+
+
+B<syntax:> js_preload_object I<I<C<name.json>> E<verbar>
+I<C<name>> from I<C<file.json>>>
+
+
+
+B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
+
+This directive appeared in version 0.7.8.
+
+
+
+
+
+Preloads an
+L<immutable object|preload_objects>
+at configure time.
+The C<name> is used a name of the global variable
+though which the object is available in njs code.
+If the C<name> is not specified,
+the file name will be used instead.
+
+    
+    js_preload_object map.json;
+
+
+Here, the C<map> is used as a name
+while accessing the preloaded object.
+
+
+
+
+
+Several C<js_preload_object> directives can be specified.
 
 
 
@@ -418,6 +1000,12 @@ I<C<module.function>>>
 
 
 B<context:> I<http>
+
+
+B<context:> I<server>
+
+
+B<context:> I<location>
 
 
 
@@ -454,12 +1042,116 @@ B<NOTE>
 
 As the C<js_set> handler
 returns its result immediately, it supports
-only synchronous callbacks.
-Thus, asynchronous callbacks such as
+only synchronous operations.
+Thus, asynchronous operations such as
 L<r.subrequest()|reference>
 or
 L<setTimeout()|reference>
 are not supported.
+
+
+
+
+
+
+
+B<NOTE>
+
+The directive can be specified on the
+C<server> and C<location> level
+since L<0.7.7|changes>.
+
+
+
+
+
+
+
+
+=head2 js_shared_dict_zone
+
+
+B<syntax:> js_shared_dict_zone I<
+    C<zone>=I<C<name>>:I<C<size>>
+    [C<timeout>=I<C<time>>]
+    [C<type>=C<string>E<verbar>C<number>]
+    [C<evict>]>
+
+
+
+B<context:> I<http>
+
+
+
+This directive appeared in version 0.8.0.
+
+
+
+
+
+Sets the I<C<name>> and I<C<size>> of the shared memory zone
+that keeps the
+key-value L<dictionary|reference>
+shared between worker processes.
+
+
+
+
+
+By default the shared dictionary uses a string as a key and a value.
+The optional C<type> parameter
+allows redefining the value type to number.
+
+
+
+
+
+The optional C<timeout> parameter sets
+the time after which all shared dictionary entries are removed from the zone.
+
+
+
+
+
+The optional C<evict> parameter removes the oldest
+key-value pair when the zone storage is exhausted.
+
+
+
+
+
+Example:
+
+    
+    example.conf:
+        # Creates a 1Mb dictionary with string values,
+        # removes key-value pairs after 60 seconds of inactivity:
+        js_shared_dict_zone zone=foo:1M timeout=60s;
+    
+        # Creates a 512Kb dictionary with string values,
+        # forcibly removes oldest key-value pairs when the zone is exhausted:
+        js_shared_dict_zone zone=bar:512K timeout=30s evict;
+    
+        # Creates a 32Kb permanent dictionary with number values:
+        js_shared_dict_zone zone=num:32k type=number;
+    
+    example.js:
+        function get(r) {
+            r.return(200, ngx.shared.foo.get(r.args.key));
+        }
+    
+        function set(r) {
+            r.return(200, ngx.shared.foo.set(r.args.key, r.args.value));
+        }
+    
+        function del(r) {
+            r.return(200, ngx.shared.bar.delete(r.args.key));
+        }
+    
+        function increment(r) {
+            r.return(200, ngx.shared.num.incr(r.args.key, 2));
+        }
+
 
 
 
@@ -478,6 +1170,12 @@ B<syntax:> js_var I<I<C<$variable>> [I<C<value>>]>
 B<context:> I<http>
 
 
+B<context:> I<server>
+
+
+B<context:> I<location>
+
+
 
 This directive appeared in version 0.5.3.
 
@@ -492,6 +1190,18 @@ The value can contain text, variables, and their combination.
 The variable is not overwritten after a redirect
 unlike variables created with the
 L<ngx_http_rewrite_module> directive.
+
+
+
+
+
+
+B<NOTE>
+
+The directive can be specified on the
+C<server> and C<location> level
+since L<0.7.7|changes>.
+
 
 
 

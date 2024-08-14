@@ -363,7 +363,7 @@ C<service>=I<C<name>>
 
 
 enables resolving of DNS
-L<SRV|https://tools.ietf.org/html/rfc2782>
+L<SRV|https://datatracker.ietf.org/doc/html/rfc2782>
 records and sets the service I<C<name>> (1.9.13).
 In order for this parameter to work, it is necessary to specify
 the L</resolve> parameter for the server
@@ -371,7 +371,7 @@ and specify a hostname without a port number.
 
 
 If the service name does not contain a dot (“C<.>”), then
-the L<RFC|https://tools.ietf.org/html/rfc2782>-compliant name
+the L<RFC|https://datatracker.ietf.org/doc/html/rfc2782>-compliant name
 is constructed
 and the TCP protocol is added to the service prefix.
 For example, to look up the
@@ -1275,6 +1275,7 @@ commercial subscription.
 B<syntax:> resolver I<
     I<C<address>> ...
     [C<valid>=I<C<time>>]
+    [C<ipv4>=C<on>E<verbar>C<off>]
     [C<ipv6>=C<on>E<verbar>C<off>]
     [C<status_zone>=I<C<zone>>]>
 
@@ -1307,7 +1308,8 @@ Name servers are queried in a round-robin fashion.
 
 
 By default, nginx will look up both IPv4 and IPv6 addresses while resolving.
-If looking up of IPv6 addresses is not desired,
+If looking up of IPv4 or IPv6 addresses is not desired,
+the C<ipv4=off> (1.23.1) or
 the C<ipv6=off> parameter can be specified.
 
 
@@ -1406,7 +1408,7 @@ B<syntax:> sticky I<
     [C<expires=>I<C<time>>]
     [C<domain=>I<C<domain>>]
     [C<httponly>]
-    [C<samesite=>C<strict>E<verbar>C<lax>E<verbar>C<none>]
+    [C<samesite=>C<strict>E<verbar>C<lax>E<verbar>C<none>E<verbar>I<C<$variable>>]
     [C<secure>]
     [C<path=>I<C<path>>]>
 
@@ -1475,6 +1477,15 @@ If the designated server cannot process a request, the new server is
 selected as if the client has not been bound yet.
 
 
+B<NOTE>
+
+As a load balancing method always tries to evenly distribute the load
+considering already bound requests,
+the server with a higher number of active bound requests
+has less possibility of getting new unbound requests.
+
+
+
 
 
 
@@ -1541,16 +1552,25 @@ Adds the C<HttpOnly> attribute to the cookie (1.7.11).
 
 
 =item C<samesite=>C<strict> E<verbar>
-C<lax> E<verbar> C<none>
+C<lax> E<verbar> C<none> E<verbar> I<C<$variable>>
 
 
 
 
-Adds the C<SameSite> attribute to the cookie
-with one of the following values (1.19.4):
+Adds the C<SameSite> (1.19.4) attribute to the cookie
+with one of the following values:
+C<Strict>,
+C<Lax>,
+C<None>, or
+using variables (1.23.3).
+In the latter case, if the variable value is empty,
+the C<SameSite> attribute will not be added to the cookie,
+if the value is resolved to
 C<Strict>,
 C<Lax>, or
-C<None>.
+C<None>,
+the corresponding value will be assigned,
+otherwise the C<Strict> value will be assigned.
 
 
 
@@ -1894,6 +1914,35 @@ The rules of converting header field names to variable names are the same
 as for the variables that start with the
 “L<$http_|ngx_http_core_module>” prefix.
 Only the header fields from the response of the last server are saved.
+
+
+
+=item C<$upstream_last_server_name>
+
+
+
+
+keeps the name of last selected upstream server (1.25.3);
+allows passing it
+L<through SNI|ngx_http_proxy_module>:
+
+    
+    proxy_ssl_server_name on;
+    proxy_ssl_name        $upstream_last_server_name;
+
+
+
+
+
+
+B<NOTE>
+
+This variable is available as part of our
+commercial subscription.
+
+
+
+
 
 
 

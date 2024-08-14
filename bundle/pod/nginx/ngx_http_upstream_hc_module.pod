@@ -306,6 +306,20 @@ C<match> parameters.
 
 
 
+=item 
+C<keepalive_time>=I<C<time>>
+
+
+
+
+
+enables L<keepalive|ngx_http_upstream_module>
+connections for health checks and specifies the time during which
+requests can be processed through one keepalive connection (1.21.7).
+By default keepalive connections are disabled.
+
+
+
 
 =back
 

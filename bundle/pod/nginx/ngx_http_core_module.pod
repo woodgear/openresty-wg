@@ -620,6 +620,16 @@ are allocated.
 
 
 
+If the directive is specified on the L</server> level,
+the value from the default server can be used.
+Details are provided in the
+“L<Virtual
+server selection|server_names>” section.
+
+
+
+
+
 
 
 =head2 client_header_timeout
@@ -1229,8 +1239,7 @@ request header field:
 
 
 
-the
-C<If-Modified-Since> request header field is ignored (0.7.34);
+the response is always considered modified (0.7.34);
 
 
 
@@ -1248,7 +1257,7 @@ exact match;
 
 
 
-modification time of a response is
+modification time of the response is
 less than or equal to the time in the C<If-Modified-Since>
 request header field.
 
@@ -1293,9 +1302,10 @@ directive).
 
 
 If the directive is specified on the L</server> level,
-its value is only used if a server is a default one.
-The value specified also applies to all virtual servers
-listening on the same address and port.
+the value from the default server can be used.
+Details are provided in the
+“L<Virtual
+server selection|server_names>” section.
 
 
 
@@ -1331,6 +1341,7 @@ Internal requests are the following:
 requests redirected by the
 L</error_page>,
 L<ngx_http_index_module>,
+L<ngx_http_internal_redirect_module>,
 L<ngx_http_random_index_module>, and
 L</try_files> directives;
 
@@ -1610,6 +1621,16 @@ Buffers are allocated only on demand.
 By default, the buffer size is equal to 8K bytes.
 If after the end of request processing a connection is transitioned
 into the keep-alive state, these buffers are released.
+
+
+
+
+
+If the directive is specified on the L</server> level,
+the value from the default server can be used.
+Details are provided in the
+“L<Virtual
+server selection|server_names>” section.
 
 
 
@@ -1964,7 +1985,8 @@ B<syntax:> listen I<
     I<C<address>>[:I<C<port>>]
     [C<default_server>]
     [C<ssl>]
-    [C<http2> E<verbar> C<spdy>]
+    [C<http2> E<verbar>
+     C<quic>]
     [C<proxy_protocol>]
     [C<setfib>=I<C<number>>]
     [C<fastopen>=I<C<number>>]
@@ -1983,7 +2005,8 @@ B<syntax:> listen I<
     I<C<port>>
     [C<default_server>]
     [C<ssl>]
-    [C<http2> E<verbar> C<spdy>]
+    [C<http2> E<verbar>
+     C<quic>]
     [C<proxy_protocol>]
     [C<setfib>=I<C<number>>]
     [C<fastopen>=I<C<number>>]
@@ -2002,7 +2025,8 @@ B<syntax:> listen I<
     C<unix:>I<C<path>>
     [C<default_server>]
     [C<ssl>]
-    [C<http2> E<verbar> C<spdy>]
+    [C<http2> E<verbar>
+     C<quic>]
     [C<proxy_protocol>]
     [C<backlog>=I<C<number>>]
     [C<rcvbuf>=I<C<size>>]
@@ -2103,15 +2127,19 @@ Normally, for this to work the C<ssl> parameter should be
 specified as well, but nginx can also be configured to accept HTTPE<sol>2
 connections without SSL.
 
+B<NOTE>
+
+The parameter is deprecated,
+the L<http2|ngx_http_v2_module> directive
+should be used instead.
 
 
 
 
-The C<spdy> parameter (1.3.15-1.9.4) allows accepting
-L<SPDY|ngx_http_spdy_module> connections on this port.
-Normally, for this to work the C<ssl> parameter should be
-specified as well, but nginx can also be configured to accept SPDY
-connections without SSL.
+
+
+The C<quic> parameter (1.25.0) configures the port to accept
+L<QUIC|ngx_http_v3_module> connections.
 
 
 
@@ -2120,7 +2148,7 @@ connections without SSL.
 The C<proxy_protocol> parameter (1.5.12)
 allows specifying that all connections accepted on this port should use the
 L<PROXY
-protocol|http://www.haproxy.org/download/1.5/doc/proxy-protocol.txt>.
+protocol|http://www.haproxy.org/download/1.8/doc/proxy-protocol.txt>.
 
 B<NOTE>
 
@@ -2171,7 +2199,7 @@ C<fastopen>=I<C<number>>
 enables
 “L<TCP Fast Open|http://en.wikipedia.org/wiki/TCP_Fast_Open>”
 for the listening socket (1.5.8) and
-L<limits|https://tools.ietf.org/html/rfc7413#section-5.1>
+L<limits|https://datatracker.ietf.org/doc/html/rfc7413#section-5.1>
 the maximum length for the queue of connections that have not yet completed
 the three-way handshake.
 
@@ -2179,7 +2207,7 @@ B<NOTE>
 
 Do not enable this feature unless the server can handle
 receiving the
-L<same SYN packet with data|https://tools.ietf.org/html/rfc7413#section-6.1> more than once.
+L<same SYN packet with data|https://datatracker.ietf.org/doc/html/rfc7413#section-6.1> more than once.
 
 
 
@@ -2725,9 +2753,10 @@ the compression off.
 
 
 If the directive is specified on the L</server> level,
-its value is only used if a server is a default one.
-The value specified also applies to all virtual servers
-listening on the same address and port.
+the value from the default server can be used.
+Details are provided in the
+“L<Virtual
+server selection|server_names>” section.
 
 
 
@@ -3284,6 +3313,7 @@ closed normally.
 B<syntax:> resolver I<
     I<C<address>> ...
     [C<valid>=I<C<time>>]
+    [C<ipv4>=C<on>E<verbar>C<off>]
     [C<ipv6>=C<on>E<verbar>C<off>]
     [C<status_zone>=I<C<zone>>]>
 
@@ -3325,7 +3355,8 @@ starting from versions 1.3.1 and 1.2.2.
 
 
 By default, nginx will look up both IPv4 and IPv6 addresses while resolving.
-If looking up of IPv6 addresses is not desired,
+If looking up of IPv4 or IPv6 addresses is not desired,
+the C<ipv4=off> (1.23.1) or
 the C<ipv6=off> parameter can be specified.
 
 B<NOTE>
@@ -3668,7 +3699,7 @@ C<aio sendfile;>.
 B<syntax:> sendfile_max_chunk I<I<C<size>>>
 
 
-B<default:> I<0>
+B<default:> I<2m>
 
 
 B<context:> I<http>
@@ -3683,9 +3714,14 @@ B<context:> I<location>
 
 
 
-When set to a non-zero value, limits the amount of data that can be
+Limits the amount of data that can be
 transferred in a single C<sendfile> call.
 Without the limit, one fast connection may seize the worker process entirely.
+
+B<NOTE>
+
+Prior to version 1.21.4, by default there was no limit.
+
 
 
 
@@ -4553,9 +4589,10 @@ L</ignore_invalid_headers> directive.
 
 
 If the directive is specified on the L</server> level,
-its value is only used if a server is a default one.
-The value specified also applies to all virtual servers
-listening on the same address and port.
+the value from the default server can be used.
+Details are provided in the
+“L<Virtual
+server selection|server_names>” section.
 
 
 
@@ -4919,6 +4956,167 @@ in the L</listen> directive.
 
 
 
+=item C<$proxy_protocol_tlv_>I<C<name>>
+
+
+
+
+TLV from the PROXY Protocol header (1.23.2).
+The C<name> can be a TLV type name or its numeric value.
+In the latter case, the value is hexadecimal
+and should be prefixed with C<0x>:
+
+
+    
+    $proxy_protocol_tlv_alpn
+    $proxy_protocol_tlv_0x01
+
+
+SSL TLVs can also be accessed by TLV type name
+or its numeric value,
+both prefixed by C<ssl_>:
+
+    
+    $proxy_protocol_tlv_ssl_version
+    $proxy_protocol_tlv_ssl_0x21
+
+
+
+
+
+The following TLV type names are supported:
+
+=over
+
+
+
+
+=item *
+
+C<alpn> (C<0x01>)E<mdash>
+upper layer protocol used over the connection
+
+
+
+=item *
+
+C<authority> (C<0x02>)E<mdash>
+host name value passed by the client
+
+
+
+=item *
+
+C<unique_id> (C<0x05>)E<mdash>
+unique connection id
+
+
+
+=item *
+
+C<netns> (C<0x30>)E<mdash>
+name of the namespace
+
+
+
+=item *
+
+C<ssl> (C<0x20>)E<mdash>
+binary SSL TLV structure
+
+
+
+=back
+
+
+
+
+
+
+
+The following SSL TLV type names are supported:
+
+=over
+
+
+
+
+=item *
+
+C<ssl_version> (C<0x21>)E<mdash>
+SSL version used in client connection
+
+
+
+=item *
+
+C<ssl_cn> (C<0x22>)E<mdash>
+SSL certificate Common Name
+
+
+
+=item *
+
+C<ssl_cipher> (C<0x23>)E<mdash>
+name of the used cipher
+
+
+
+=item *
+
+C<ssl_sig_alg> (C<0x24>)E<mdash>
+algorithm used to sign the certificate
+
+
+
+=item *
+
+C<ssl_key_alg> (C<0x25>)E<mdash>
+public-key algorithm
+
+
+
+=back
+
+
+
+
+
+
+
+Also, the following special SSL TLV type name is supported:
+
+=over
+
+
+
+
+=item *
+
+C<ssl_verify>E<mdash>
+client SSL certificate verification result,
+C<0> if the client presented a certificate
+and it was successfully verified,
+non-zero otherwise.
+
+
+
+=back
+
+
+
+
+
+
+
+The PROXY protocol must be previously enabled by setting the
+C<proxy_protocol> parameter
+in the L</listen> directive.
+
+
+
+
+
 =item C<$query_string>
 
 
@@ -5166,8 +5364,9 @@ port of the server which accepted a request
 request protocol, usually
 “C<HTTPE<sol>1.0>”,
 “C<HTTPE<sol>1.1>”,
+“L<HTTPE<sol>2.0|ngx_http_v2_module>”,
 or
-“L<HTTPE<sol>2.0|ngx_http_v2_module>”
+“L<HTTPE<sol>3.0|ngx_http_v3_module>”
 
 
 

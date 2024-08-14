@@ -331,7 +331,7 @@ C<service>=I<C<name>>
 
 
 enables resolving of DNS
-L<SRV|https://tools.ietf.org/html/rfc2782>
+L<SRV|https://datatracker.ietf.org/doc/html/rfc2782>
 records and sets the service I<C<name>> (1.9.13).
 In order for this parameter to work, it is necessary to specify
 the L</resolve> parameter for the server
@@ -339,7 +339,7 @@ and specify a hostname without a port number.
 
 
 If the service name does not contain a dot (“C<.>”), then
-the L<RFC|https://tools.ietf.org/html/rfc2782>-compliant name
+the L<RFC|https://datatracker.ietf.org/doc/html/rfc2782>-compliant name
 is constructed
 and the TCP protocol is added to the service prefix.
 For example, to look up the
@@ -747,6 +747,7 @@ commercial subscription.
 B<syntax:> resolver I<
     I<C<address>> ...
     [C<valid>=I<C<time>>]
+    [C<ipv4>=C<on>E<verbar>C<off>]
     [C<ipv6>=C<on>E<verbar>C<off>]
     [C<status_zone>=I<C<zone>>]>
 
@@ -779,7 +780,8 @@ Name servers are queried in a round-robin fashion.
 
 
 By default, nginx will look up both IPv4 and IPv6 addresses while resolving.
-If looking up of IPv6 addresses is not desired,
+If looking up of IPv4 or IPv6 addresses is not desired,
+the C<ipv4=off> (1.23.1) or
 the C<ipv6=off> parameter can be specified.
 
 

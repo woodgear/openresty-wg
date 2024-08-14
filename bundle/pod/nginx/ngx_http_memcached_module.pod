@@ -168,41 +168,6 @@ It should be noted that this timeout cannot usually exceed 75 seconds.
 
 
 
-=head2 memcached_force_ranges
-
-
-B<syntax:> memcached_force_ranges I<C<on> E<verbar> C<off>>
-
-
-B<default:> I<off>
-
-
-B<context:> I<http>
-
-
-B<context:> I<server>
-
-
-B<context:> I<location>
-
-
-
-This directive appeared in version 1.7.7.
-
-
-
-
-
-Enables byte-range support
-for both cached and uncached responses from the memcached server
-regardless of the C<Accept-Ranges> field in these responses.
-
-
-
-
-
-
-
 =head2 memcached_gzip_flag
 
 

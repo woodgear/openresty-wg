@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
-# wg: this file come from https://github.com/openresty/openresty/blob/master/util/configure 
-# wg: 虽然这个文件很长 1610l，但从历史记录来看 https://github.com/openresty/openresty/blame/master/util/configure 基本可以确实是人手写的
+
 use 5.006;
 use strict;
 use warnings;
@@ -67,7 +66,6 @@ if ($OS =~ /solaris|sunos/i) {
 } else {
     $platform = 'posix';
 }
-# wg: 拿到了 platform 
 
 my @modules = (
     [ndk => 'ngx_devel_kit'],
@@ -109,8 +107,6 @@ my $without_resty_mods_regex;
 
     $without_resty_mods_regex = qr/$s/;
 }
-print "wg: without_resty_mods_regex $without_resty_mods_regex \n;";
-# wg: 用这个正则可以判断出 调用configure的时候有没有设置 without 这个模块
 
 my $with_resty_mods_regex;
 {
@@ -126,7 +122,6 @@ my $with_resty_mods_regex;
 
     $with_resty_mods_regex = qr/$s/;
 }
-# 同上
 
 my $prefix = '/usr/local/openresty';
 my $ngx_sbin;
@@ -372,8 +367,7 @@ for my $opt (@ARGV) {
         die "Invalid option $opt\n";
     }
 }
-# wg: 这一坨 还是根据命令行参数 配置各种东西 nginx_opts resty_opts cc 之类的
-# wg: qw 是在定义一个数组 这是在设置 nginx_opts
+
 for my $lib (qw/openssl pcre zlib/) {
     if ($with_ext_lib{$lib} && !$with_ext_lib_opts{$lib}) {
         push @ngx_opts, "--with-$lib-opt=-g";
@@ -499,7 +493,7 @@ sub cd ($) {
     print("cd $dir\n");
     chdir $dir or die "failed to cd $dir: $!\n";
 }
-# 这个函数结束在 1250h 里面 1. 编译了luajit 2. 更新了nginx_command
+
 sub build_resty_opts {
     my $opts = shift;
 
@@ -559,6 +553,9 @@ _END_
         die "--with-stream_ssl_module conflicts with --without-stream_ssl_module.",
             "\n";
     }
+
+    # disable pcre2 by default
+    push @ngx_opts, '--without-pcre2';
 
     if (!$opts->{no_stream}
         && ! $opts->{no_stream_ssl}
@@ -635,9 +632,6 @@ _END_
         die "file or directory \"build\" already exists. please remove it ",
             "first.\n";
     }
-
-    # wg: 重建 build 目录 因为我希望所有的变动都能在git中被追踪 所以就不copy了
-    # shell "ln -s bundle build";
     shell "cp -rp bundle/ build";
 
     cd 'build';
@@ -812,8 +806,6 @@ _END_
             }
         }
 
-        print "start rebuild luajit\n";
-        # 好吧 后面要install 所以这里一定要真正去build luajit
         if (defined $cores) {
             shell "${make} -j$cores$extra_opts PREFIX=$luajit_prefix", $dry_run;
         } else {
@@ -1185,8 +1177,7 @@ _EOC_
                 or die "Cannot open $resty_bin for reading: $!\n";
             my ($new, $found);
             while (<$in>) {
-                # 我们希望这个能多次跑 所以可能出现patch 多次的情况
-                if (/^my \$nginx_path.*;$/) {
+                if (/^my \$nginx_path;$/) {
                     $found = 1;
                     $new .= qq/my \$nginx_path = '$ngx_sbin';\n/;
 
@@ -1394,6 +1385,7 @@ Options directly inherited from nginx
 
   --with-http_ssl_module             enable ngx_http_ssl_module (default on)
   --with-http_v2_module              enable ngx_http_v2_module
+  --with-http_v3_module              enable ngx_http_v3_module
   --with-http_realip_module          enable ngx_http_realip_module
   --with-http_addition_module        enable ngx_http_addition_module
   --with-http_xslt_module            enable ngx_http_xslt_module
@@ -1523,6 +1515,7 @@ Options directly inherited from nginx
   --with-pcre=DIR                    set path to PCRE library sources
   --with-pcre-opt=OPTIONS            set additional build options for PCRE
   --with-pcre-jit                    build PCRE with JIT compilation support
+  --without-pcre2                    do not use PCRE2 library
 
   --with-zlib=DIR                    set path to zlib library sources
   --with-zlib-opt=OPTIONS            set additional build options for zlib
@@ -1550,7 +1543,6 @@ _EOC_
 }
 
 sub gen_makefile {
-    print "wg: start gen_makefile\n";
     if (-f 'Makefile') {
         unlink 'Makefile' or
             die "ERROR: failed to remove existing Makefile: $!\n";

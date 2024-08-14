@@ -89,6 +89,12 @@ L<windows>
 
 
 
+=item *
+
+L<quic>
+
+
+
 =back
 
 
@@ -473,6 +479,12 @@ L<ngx_http_index_module|ngx_http_index_module>
 
 =item *
 
+L<ngx_http_internal_redirect_module|ngx_http_internal_redirect_module>
+
+
+
+=item *
+
 L<ngx_http_js_module|ngx_http_js_module>
 
 
@@ -539,6 +551,12 @@ L<ngx_http_proxy_module|ngx_http_proxy_module>
 
 =item *
 
+L<ngx_http_proxy_protocol_vendor_module|ngx_http_proxy_protocol_vendor_module>
+
+
+
+=item *
+
 L<ngx_http_random_index_module|ngx_http_random_index_module>
 
 
@@ -582,12 +600,6 @@ L<ngx_http_session_log_module|ngx_http_session_log_module>
 =item *
 
 L<ngx_http_slice_module|ngx_http_slice_module>
-
-
-
-=item *
-
-L<ngx_http_spdy_module|ngx_http_spdy_module>
 
 
 
@@ -660,6 +672,12 @@ L<ngx_http_uwsgi_module|ngx_http_uwsgi_module>
 =item *
 
 L<ngx_http_v2_module|ngx_http_v2_module>
+
+
+
+=item *
+
+L<ngx_http_v3_module|ngx_http_v3_module>
 
 
 
@@ -801,7 +819,25 @@ L<ngx_stream_map_module|ngx_stream_map_module>
 
 =item *
 
+L<ngx_stream_mqtt_preread_module|ngx_stream_mqtt_preread_module>
+
+
+
+=item *
+
+L<ngx_stream_mqtt_filter_module|ngx_stream_mqtt_filter_module>
+
+
+
+=item *
+
 L<ngx_stream_proxy_module|ngx_stream_proxy_module>
+
+
+
+=item *
+
+L<ngx_stream_proxy_protocol_vendor_module|ngx_stream_proxy_protocol_vendor_module>
 
 
 
@@ -876,6 +912,18 @@ L<ngx_stream_zone_sync_module|ngx_stream_zone_sync_module>
 =item *
 
 L<ngx_google_perftools_module|ngx_google_perftools_module>
+
+
+
+=item *
+
+L<ngx_mgmt_module|ngx_mgmt_module>
+
+
+
+=item *
+
+L<ngx_otel_module|ngx_otel_module>
 
 
 

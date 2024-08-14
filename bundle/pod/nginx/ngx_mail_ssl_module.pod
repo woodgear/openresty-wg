@@ -84,7 +84,7 @@ and possibly increase the session lifetime
         server {
             listen              993 ssl;
     
-            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
             ssl_ciphers         AES128-SHA:AES256-SHA:RC4-SHA:DES-CBC3-SHA:RC4-MD5;
             ssl_certificate     /usr/local/nginx/conf/cert.pem;
             ssl_certificate_key /usr/local/nginx/conf/cert.key;
@@ -119,7 +119,8 @@ B<context:> I<server>
 
 
 
-This directive was made obsolete in version 1.15.0.
+This directive was made obsolete in version 1.15.0
+and was removed in version 1.25.1.
 The C<ssl> parameter
 of the L<ngx_mail_core_module> directive
 should be used instead.
@@ -340,7 +341,7 @@ directive can be used.
 =head2 ssl_conf_command
 
 
-B<syntax:> ssl_conf_command I<I<C<command>>>
+B<syntax:> ssl_conf_command I<I<C<name>> I<C<value>>>
 
 
 
@@ -643,7 +644,7 @@ B<syntax:> ssl_protocols I<
     [C<TLSv1.3>]>
 
 
-B<default:> I<TLSv1 TLSv1.1 TLSv1.2>
+B<default:> I<TLSv1 TLSv1.1 TLSv1.2 TLSv1.3>
 
 
 B<context:> I<mail>
@@ -666,7 +667,13 @@ The C<TLSv1.1> and C<TLSv1.2> parameters
 B<NOTE>
 
 The C<TLSv1.3> parameter (1.13.0) works only when
-OpenSSL 1.1.1 built with TLSv1.3 support is used.
+OpenSSL 1.1.1 or higher is used.
+
+
+B<NOTE>
+
+The C<TLSv1.3> parameter is used by default
+since 1.23.4.
 
 
 
@@ -748,6 +755,10 @@ about 4000 sessions.
 Each shared cache should have an arbitrary name.
 A cache with the same name can be used in several
 servers.
+It is also used to automatically generate, store, and
+periodically rotate TLS session ticket keys (1.23.2)
+unless configured explicitly
+using the L</ssl_session_ticket_key> directive.
 
 
 
@@ -858,7 +869,7 @@ This directive appeared in version 1.5.9.
 
 
 Enables or disables session resumption through
-L<TLS session tickets|https://tools.ietf.org/html/rfc5077>.
+L<TLS session tickets|https://datatracker.ietf.org/doc/html/rfc5077>.
 
 
 

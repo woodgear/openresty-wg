@@ -163,7 +163,7 @@ should also be specified.
 The C<proxy_protocol> parameter (1.11.4)
 allows specifying that all connections accepted on this port should use the
 L<PROXY
-protocol|http://www.haproxy.org/download/1.5/doc/proxy-protocol.txt>.
+protocol|http://www.haproxy.org/download/1.8/doc/proxy-protocol.txt>.
 
 B<NOTE>
 
@@ -191,7 +191,7 @@ C<fastopen>=I<C<number>>
 enables
 “L<TCP Fast Open|http://en.wikipedia.org/wiki/TCP_Fast_Open>”
 for the listening socket (1.21.0) and
-L<limits|https://tools.ietf.org/html/rfc7413#section-5.1>
+L<limits|https://datatracker.ietf.org/doc/html/rfc7413#section-5.1>
 the maximum length for the queue of connections that have not yet completed
 the three-way handshake.
 
@@ -199,7 +199,7 @@ B<NOTE>
 
 Do not enable this feature unless the server can handle
 receiving the
-L<same SYN packet with data|https://tools.ietf.org/html/rfc7413#section-6.1> more than once.
+L<same SYN packet with data|https://datatracker.ietf.org/doc/html/rfc7413#section-6.1> more than once.
 
 
 
@@ -463,6 +463,7 @@ the connection is closed.
 B<syntax:> resolver I<
     I<C<address>> ...
     [C<valid>=I<C<time>>]
+    [C<ipv4>=C<on>E<verbar>C<off>]
     [C<ipv6>=C<on>E<verbar>C<off>]
     [C<status_zone>=I<C<zone>>]>
 
@@ -498,7 +499,8 @@ Name servers are queried in a round-robin fashion.
 
 
 By default, nginx will look up both IPv4 and IPv6 addresses while resolving.
-If looking up of IPv6 addresses is not desired,
+If looking up of IPv4 or IPv6 addresses is not desired,
+the C<ipv4=off> (1.23.1) or
 the C<ipv6=off> parameter can be specified.
 
 
@@ -869,6 +871,165 @@ in the L</listen> directive.
 
 
 server port from the PROXY protocol header (1.17.6)
+
+
+The PROXY protocol must be previously enabled by setting the
+C<proxy_protocol> parameter
+in the L</listen> directive.
+
+
+
+
+
+=item C<$proxy_protocol_tlv_>I<C<name>>
+
+
+
+
+TLV from the PROXY Protocol header (1.23.2).
+The C<name> can be a TLV type name or its numeric value.
+In the latter case, the value is hexadecimal
+and should be prefixed with C<0x>:
+
+
+    
+    $proxy_protocol_tlv_alpn
+    $proxy_protocol_tlv_0x01
+
+
+SSL TLVs can also be accessed by TLV type name or its numeric value,
+both prefixed by C<ssl_>:
+
+    
+    $proxy_protocol_tlv_ssl_version
+    $proxy_protocol_tlv_ssl_0x21
+
+
+
+
+
+The following TLV type names are supported:
+
+=over
+
+
+
+
+=item *
+
+C<alpn> (C<0x01>)E<mdash>
+upper layer protocol used over the connection
+
+
+
+=item *
+
+C<authority> (C<0x02>)E<mdash>
+host name value passed by the client
+
+
+
+=item *
+
+C<unique_id> (C<0x05>)E<mdash>
+unique connection id
+
+
+
+=item *
+
+C<netns> (C<0x30>)E<mdash>
+name of the namespace
+
+
+
+=item *
+
+C<ssl> (C<0x20>)E<mdash>
+binary SSL TLV structure
+
+
+
+=back
+
+
+
+
+
+
+
+The following SSL TLV type names are supported:
+
+=over
+
+
+
+
+=item *
+
+C<ssl_version> (C<0x21>)E<mdash>
+SSL version used in client connection
+
+
+
+=item *
+
+C<ssl_cn> (C<0x22>)E<mdash>
+SSL certificate Common Name
+
+
+
+=item *
+
+C<ssl_cipher> (C<0x23>)E<mdash>
+name of the used cipher
+
+
+
+=item *
+
+C<ssl_sig_alg> (C<0x24>)E<mdash>
+algorithm used to sign the certificate
+
+
+
+=item *
+
+C<ssl_key_alg> (C<0x25>)E<mdash>
+public-key algorithm
+
+
+
+=back
+
+
+
+
+
+
+
+Also, the following special SSL TLV type name is supported:
+
+=over
+
+
+
+
+=item *
+
+C<ssl_verify>E<mdash>
+client SSL certificate verification result,
+zero if the client presented a certificate
+and it was successfully verified, and non-zero otherwise
+
+
+
+=back
+
+
+
+
+
 
 
 The PROXY protocol must be previously enabled by setting the

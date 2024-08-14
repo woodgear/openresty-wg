@@ -93,7 +93,7 @@ and possibly increase the session lifetime
             listen              443 ssl;
             <emphasis>keepalive_timeout   70;</emphasis>
     
-            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
             ssl_ciphers         AES128-SHA:AES256-SHA:RC4-SHA:DES-CBC3-SHA:RC4-MD5;
             ssl_certificate     /usr/local/nginx/conf/cert.pem;
             ssl_certificate_key /usr/local/nginx/conf/cert.key;
@@ -128,7 +128,8 @@ B<context:> I<server>
 
 
 
-This directive was made obsolete in version 1.15.0.
+This directive was made obsolete in version 1.15.0
+and was removed in version 1.25.1.
 The C<ssl> parameter
 of the L<ngx_http_core_module> directive
 should be used instead.
@@ -425,7 +426,7 @@ directive can be used.
 =head2 ssl_conf_command
 
 
-B<syntax:> ssl_conf_command I<I<C<command>>>
+B<syntax:> ssl_conf_command I<I<C<name>> I<C<value>>>
 
 
 
@@ -576,12 +577,12 @@ This directive appeared in version 1.15.3.
 
 
 Enables or disables TLS 1.3
-L<early data|https://tools.ietf.org/html/rfc8446#section-2.3>.
+L<early data|https://datatracker.ietf.org/doc/html/rfc8446#section-2.3>.
 
 B<NOTE>
 
 Requests sent within early data are subject to
-L<replay attacks|https://tools.ietf.org/html/rfc8470>.
+L<replay attacks|https://datatracker.ietf.org/doc/html/rfc8470>.
 To protect against such attacks at the application layer,
 the $ssl_early_data variable
 should be used.
@@ -810,7 +811,7 @@ This directive appeared in version 1.19.0.
 
 Overrides the URL of the OCSP responder specified in the
 “L<Authority
-Information Access|https://tools.ietf.org/html/rfc5280#section-4.2.2.1>” certificate extension
+Information Access|https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.2.1>” certificate extension
 for validation of client certificates.
 
 
@@ -927,7 +928,7 @@ B<syntax:> ssl_protocols I<
     [C<TLSv1.3>]>
 
 
-B<default:> I<TLSv1 TLSv1.1 TLSv1.2>
+B<default:> I<TLSv1 TLSv1.1 TLSv1.2 TLSv1.3>
 
 
 B<context:> I<http>
@@ -941,6 +942,22 @@ B<context:> I<server>
 
 Enables the specified protocols.
 
+
+
+
+
+If the directive is specified
+on the L<ngx_http_core_module> level,
+the value from the default server can be used.
+Details are provided in the
+“L<Virtual
+server selection|server_names>” section.
+
+
+
+
+
+
 B<NOTE>
 
 The C<TLSv1.1> and C<TLSv1.2> parameters
@@ -950,7 +967,13 @@ The C<TLSv1.1> and C<TLSv1.2> parameters
 B<NOTE>
 
 The C<TLSv1.3> parameter (1.13.0) works only when
-OpenSSL 1.1.1 built with TLSv1.3 support is used.
+OpenSSL 1.1.1 or higher is used.
+
+
+B<NOTE>
+
+The C<TLSv1.3> parameter is used by default
+since 1.23.4.
 
 
 
@@ -1084,6 +1107,10 @@ The cache size is specified in bytes; one megabyte can store
 about 4000 sessions.
 Each shared cache should have an arbitrary name.
 A cache with the same name can be used in several virtual servers.
+It is also used to automatically generate, store, and
+periodically rotate TLS session ticket keys (1.23.2)
+unless configured explicitly
+using the L</ssl_session_ticket_key> directive.
 
 
 
@@ -1194,7 +1221,7 @@ This directive appeared in version 1.5.9.
 
 
 Enables or disables session resumption through
-L<TLS session tickets|https://tools.ietf.org/html/rfc5077>.
+L<TLS session tickets|https://datatracker.ietf.org/doc/html/rfc5077>.
 
 
 
@@ -1253,7 +1280,7 @@ This directive appeared in version 1.3.7.
 
 Enables or disables
 L<stapling
-of OCSP responses|https://tools.ietf.org/html/rfc6066#section-8> by the server.
+of OCSP responses|https://datatracker.ietf.org/doc/html/rfc6066#section-8> by the server.
 Example:
 
     
@@ -1347,7 +1374,7 @@ This directive appeared in version 1.3.7.
 
 Overrides the URL of the OCSP responder specified in the
 “L<Authority
-Information Access|https://tools.ietf.org/html/rfc5280#section-4.2.2.1>” certificate extension.
+Information Access|https://datatracker.ietf.org/doc/html/rfc5280#section-4.2.2.1>” certificate extension.
 
 
 
@@ -1571,6 +1598,16 @@ embedded variables:
 
 
 
+=item C<$ssl_alpn_protocol>
+
+
+
+
+returns the protocol selected by ALPN during the SSL handshake,
+or an empty string otherwise (1.21.4);
+
+
+
 =item C<$ssl_cipher>
 
 
@@ -1650,7 +1687,7 @@ for an established SSL connection (1.7.1);
 
 returns the “issuer DN” string of the client certificate
 for an established SSL connection according to
-L<RFC 2253|https://tools.ietf.org/html/rfc2253> (1.11.6);
+L<RFC 2253|https://datatracker.ietf.org/doc/html/rfc2253> (1.11.6);
 
 
 
@@ -1687,7 +1724,7 @@ for an established SSL connection;
 
 returns the “subject DN” string of the client certificate
 for an established SSL connection according to
-L<RFC 2253|https://tools.ietf.org/html/rfc2253> (1.11.6);
+L<RFC 2253|https://datatracker.ietf.org/doc/html/rfc2253> (1.11.6);
 
 
 
@@ -1757,6 +1794,29 @@ B<NOTE>
 
 Prior to version 1.11.7, the “C<FAILED>” result
 did not contain the I<C<reason>> string.
+
+
+
+
+=item C<$ssl_curve>
+
+
+
+
+returns the negotiated curve used for
+SSL handshake key exchange process (1.21.5).
+Known curves are listed by names, unknown are shown in hexadecimal,
+for example:
+
+    
+    prime256v1
+
+
+
+B<NOTE>
+
+The variable is supported only when using OpenSSL version 3.0 or higher.
+With older versions, the variable value will be an empty string.
 
 
 

@@ -74,7 +74,7 @@ and possibly increase the session lifetime
         server {
             listen              12345 ssl;
     
-            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
+            ssl_protocols       TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
             ssl_ciphers         AES128-SHA:AES256-SHA:RC4-SHA:DES-CBC3-SHA:RC4-MD5;
             ssl_certificate     /usr/local/nginx/conf/cert.pem;
             ssl_certificate_key /usr/local/nginx/conf/cert.key;
@@ -90,6 +90,51 @@ and possibly increase the session lifetime
 
 
 =head1 Directives
+
+=head2 ssl_alpn
+
+
+B<syntax:> ssl_alpn I<I<C<protocol>> ...>
+
+
+
+B<context:> I<stream>
+
+
+B<context:> I<server>
+
+
+
+This directive appeared in version 1.21.4.
+
+
+
+
+
+Specifies the list of supported
+L<ALPN|https://datatracker.ietf.org/doc/html/rfc7301> protocols.
+One of the protocols must be
+negotiated if the client uses ALPN:
+
+    
+    map $ssl_alpn_protocol $proxy {
+        h2                127.0.0.1:8001;
+        http/1.1          127.0.0.1:8002;
+    }
+    
+    server {
+        listen      12346;
+        proxy_pass  $proxy;
+        ssl_alpn    h2 http/1.1;
+    }
+
+
+
+
+
+
+
+
 
 =head2 ssl_certificate
 
@@ -312,7 +357,7 @@ directive can be used.
 =head2 ssl_conf_command
 
 
-B<syntax:> ssl_conf_command I<I<C<command>>>
+B<syntax:> ssl_conf_command I<I<C<name>> I<C<value>>>
 
 
 
@@ -625,7 +670,7 @@ B<syntax:> ssl_protocols I<
     [C<TLSv1.3>]>
 
 
-B<default:> I<TLSv1 TLSv1.1 TLSv1.2>
+B<default:> I<TLSv1 TLSv1.1 TLSv1.2 TLSv1.3>
 
 
 B<context:> I<stream>
@@ -648,7 +693,13 @@ only when OpenSSL 1.0.1 or higher is used.
 B<NOTE>
 
 The C<TLSv1.3> parameter (1.13.0) works only when
-OpenSSL 1.1.1 built with TLSv1.3 support is used.
+OpenSSL 1.1.1 or higher is used.
+
+
+B<NOTE>
+
+The C<TLSv1.3> parameter is used by default
+since 1.23.4.
 
 
 
@@ -730,6 +781,10 @@ about 4000 sessions.
 Each shared cache should have an arbitrary name.
 A cache with the same name can be used in several
 servers.
+It is also used to automatically generate, store, and
+periodically rotate TLS session ticket keys (1.23.2)
+unless configured explicitly
+using the L</ssl_session_ticket_key> directive.
 
 
 
@@ -832,7 +887,7 @@ B<context:> I<server>
 
 
 Enables or disables session resumption through
-L<TLS session tickets|https://tools.ietf.org/html/rfc5077>.
+L<TLS session tickets|https://datatracker.ietf.org/doc/html/rfc5077>.
 
 
 
@@ -1000,6 +1055,16 @@ since 1.11.2.
 
 
 
+=item C<$ssl_alpn_protocol>
+
+
+
+
+returns the protocol selected by ALPN during the SSL handshake,
+or an empty string otherwise (1.21.4);
+
+
+
 =item C<$ssl_cipher>
 
 
@@ -1061,7 +1126,7 @@ for an established SSL connection (1.11.8);
 
 returns the “issuer DN” string of the client certificate
 for an established SSL connection according to
-L<RFC 2253|https://tools.ietf.org/html/rfc2253> (1.11.8);
+L<RFC 2253|https://datatracker.ietf.org/doc/html/rfc2253> (1.11.8);
 
 
 
@@ -1083,7 +1148,7 @@ for an established SSL connection (1.11.8);
 
 returns the “subject DN” string of the client certificate
 for an established SSL connection according to
-L<RFC 2253|https://tools.ietf.org/html/rfc2253> (1.11.8);
+L<RFC 2253|https://datatracker.ietf.org/doc/html/rfc2253> (1.11.8);
 
 
 
@@ -1133,6 +1198,29 @@ returns the start date of the client certificate (1.11.8);
 returns the result of client certificate verification (1.11.8):
 “C<SUCCESS>”, “C<FAILED:>I<C<reason>>”,
 and “C<NONE>” if a certificate was not present;
+
+
+
+=item C<$ssl_curve>
+
+
+
+
+returns the negotiated curve used for
+SSL handshake key exchange process (1.21.5).
+Known curves are listed by names, unknown are shown in hexadecimal,
+for example:
+
+    
+    prime256v1
+
+
+
+B<NOTE>
+
+The variable is supported only when using OpenSSL version 3.0 or higher.
+With older versions, the variable value will be an empty string.
+
 
 
 
