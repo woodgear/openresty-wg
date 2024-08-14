@@ -87,6 +87,7 @@ function openresty-full-build() (
 
   openresty-build-lua-and-nginx
   openresty-build-extra-lua
+  openresty-relink
 
   local end=$(date +%s%3N)
   echo "build: all : $(_format_time_diff $start $end)" | tee -a $target/build.record
@@ -109,9 +110,9 @@ function keep-gitkeep() {
   touch $source/target/.gitkeep
 }
 
-function openresty-build-extra-lua() {
-  ./actions/alb-nginx
-}
+function openresty-build-extra-lua() (
+  ./actions/alb-nginx-install-deps.sh
+)
 
 function openresty-build-openssl() (
   local start=$(date +%s%3N)
