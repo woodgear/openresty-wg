@@ -41,6 +41,14 @@ function openresty-init-env() (
   export OPENRESTY_BUILD_TRARGRT_DIR=$OPENRESTY_SOURCE_BASE/target/
 )
 
+function openresty-build-waf() (
+  cd ./vendor/modsecurity
+  ./build.sh
+  ./configure
+  make
+  sudo make install
+)
+
 function openresty-full-build() (
   set -e
   #if [ -n "$(git status --porcelain)" ] && [ -z "$IGNORE_DITY_ROOM" ]; then
@@ -258,6 +266,7 @@ function openresty-gen-make {
     --with-threads \
     --with-debug \
     --without-http_redis_module \
+    --add-module=$PWD/vendor/ModSecurity-nginx \
     --build=ALB
 
   local END_GEN_CFG=$(date +%s%3N)

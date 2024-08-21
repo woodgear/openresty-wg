@@ -60,3 +60,6 @@
 	url = git@github.com:woodgear/nginx.git
 	branch = openresty-1.25.3.1
 
+[submodule "vendor/modsecurity"]
+	path = vendor/modsecurity
+	url = https://github.com/owasp-modsecurity/ModSecurity.git
