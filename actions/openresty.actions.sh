@@ -23,7 +23,7 @@ function openresty-docker {
 # apt-get install zlib1g-dev libpcre3-dev unzip  libssl-dev perl make build-essential curl libxml2-dev libxslt1-dev ca-certificates  gettext-base libgd-dev libgeoip-dev  libncurses5-dev libperl-dev libreadline-dev libxslt1-dev
 # apk add git bash build-base coreutils curl gd-dev geoip-dev libxslt-dev linux-headers make perl-dev readline-dev zlib-dev gd geoip libgcc libxslt zlib -y
 function openresty-build-dep-arch {
-  yay -S bc geoip automake m4
+  yay -S bc geoip automake m4 libxml2 libxslt gd
   # make pcre-8.45 happy
   sudo ln -s /usr/bin/aclocal /usr/bin/aclocal-1.16
   sudo ln -s /usr/bin/automake /usr/bin/automake-1.16
@@ -36,10 +36,10 @@ function openresty-build-in-docker {
   openresty-full-build
 }
 
-function openresty-init-env() (
+function openresty-init-env() {
   export OPENRESTY_SOURCE_BASE=$PWD
   export OPENRESTY_BUILD_TRARGRT_DIR=$OPENRESTY_SOURCE_BASE/target/
-)
+}
 
 function openresty-build-waf() (
   cd ./vendor/modsecurity
@@ -108,7 +108,7 @@ function openresty-relink() (
   local target=${OPENRESTY_BUILD_TRARGRT_DIR}
   sudo rm -rf /usr/local/bin/nginx
   sudo ln -s $target/nginx/sbin/nginx /usr/local/bin/nginx
-  sudo setcap CAP_NET_BIND_SERVICE=+eip $target/nginx/sbin/nginx
+#   sudo setcap CAP_NET_BIND_SERVICE=+eip $target/nginx/sbin/nginx
   which nginx
   nginx -V
 )
@@ -266,7 +266,6 @@ function openresty-gen-make {
     --with-threads \
     --with-debug \
     --without-http_redis_module \
-    --add-module=$PWD/vendor/ModSecurity-nginx \
     --build=ALB
 
   local END_GEN_CFG=$(date +%s%3N)
